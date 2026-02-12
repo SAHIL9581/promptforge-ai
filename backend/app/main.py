@@ -15,19 +15,20 @@ from .config import settings  # Add this import
 
 app = FastAPI(title="PromptForge AI", version="1.0.0")
 
-# CORS Configuration - FIXED!
+# Replace your entire CORS middleware with this:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173", 
-        "http://localhost:3000",
-        "https://promptforge-ai-delta.vercel.app",  # ← ADD YOUR VERCEL URL
-        "*"  # TEMP: Allow all origins (remove in production)
+        "*",
+        "https://promptforge-ai-delta.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000"
     ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
+
 
 # Startup Event
 @app.on_event("startup")
