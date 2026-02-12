@@ -11,13 +11,19 @@ from .routes import (
     technical_challenge_routes
 )
 from .services.gamification_service import initialize_badges
+from .config import settings  # Add this import
 
 app = FastAPI(title="PromptForge AI", version="1.0.0")
 
-# CORS Configuration
+# CORS Configuration - FIXED!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:3000",
+        "https://promptforge-ai-delta.vercel.app",  # ← ADD YOUR VERCEL URL
+        "*"  # TEMP: Allow all origins (remove in production)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,15 +38,16 @@ def on_startup():
 # Root Endpoints
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to PromptForge AI API"}
+    return {"message": "Welcome to PromptForge AI API - Backend LIVE!"}
 
 @app.get("/test-config")
 def test_config():
-    from .config import settings
     return {
         "openai_key_set": bool(settings.OPENAI_API_KEY),
         "openai_key_length": len(settings.OPENAI_API_KEY) if settings.OPENAI_API_KEY else 0,
-        "openai_key_prefix": settings.OPENAI_API_KEY[:10] if settings.OPENAI_API_KEY else "NOT SET"
+        "openai_key_prefix": settings.OPENAI_API_KEY[:10] if settings.OPENAI_API_KEY else "NOT SET",
+        "backend_url": "https://promptforge-ai-nr0a.onrender.com",
+        "status": "Backend working perfectly!"
     }
 
 # API Routes
