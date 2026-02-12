@@ -18,14 +18,9 @@ app = FastAPI(title="PromptForge AI", version="1.0.0")
 # Replace your entire CORS middleware with this:
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*",
-        "https://promptforge-ai-delta.vercel.app",
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ],
+    allow_origins=["*"],  # ALL DOMAINS - WORKS 100%
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
     allow_headers=["*"],
 )
 
