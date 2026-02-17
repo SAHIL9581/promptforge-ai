@@ -6,8 +6,8 @@ const BadgeCard = ({ badge, earned = false }) => {
                 <motion.div
                         whileHover={{ scale: 1.05 }}
                         className={`p-4 rounded-lg border-2 transition-all ${earned
-                                        ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-400'
-                                        : 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 opacity-60'
+                                ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-400'
+                                : 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 opacity-60'
                                 }`}
                 >
                         <div className="flex flex-col items-center text-center space-y-2">
