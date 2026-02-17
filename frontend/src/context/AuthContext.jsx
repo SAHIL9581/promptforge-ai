@@ -34,8 +34,18 @@ export const AuthProvider = ({ children }) => {
                 return response
         }
 
+        // ✅ FIXED: Store token after signup
         const signup = async (name, email, password) => {
                 const response = await apiSignup(name, email, password)
+
+                // ✅ Store token immediately after signup
+                if (response.access_token) {
+                        localStorage.setItem('token', response.access_token)
+                        const userData = { name, email }
+                        localStorage.setItem('user', JSON.stringify(userData))
+                        setUser(userData)
+                }
+
                 return response
         }
 

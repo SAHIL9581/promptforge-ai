@@ -7,16 +7,18 @@ const api = axios.create({
         headers: {
                 'Content-Type': 'application/json',
         },
-        // withCredentials: true, // ❌ REMOVED
         timeout: 30000,
 });
 
-// Request interceptor for adding auth token
+// ✅ Request interceptor - adds token to every request
 api.interceptors.request.use(
         (config) => {
                 const token = localStorage.getItem('token');
                 if (token) {
                         config.headers.Authorization = `Bearer ${token}`;
+                        console.log('🔐 Sending request with token:', token.substring(0, 20) + '...');
+                } else {
+                        console.warn('⚠️ No token found in localStorage');
                 }
                 return config;
         },
@@ -26,24 +28,24 @@ api.interceptors.request.use(
         }
 );
 
-
-// Response interceptor for handling errors
+// ✅ Response interceptor - handles 401 errors
 api.interceptors.response.use(
         (response) => response,
         (error) => {
-                // Log detailed error for debugging
                 if (error.response) {
                         console.error('Response error:', error.response.status, error.response.data);
+
+                        // ✅ Redirect to login if not authenticated
+                        if (error.response?.status === 401) {
+                                console.error('❌ Not authenticated - redirecting to login');
+                                localStorage.removeItem('token');
+                                localStorage.removeItem('user');
+                                window.location.href = '/login';
+                        }
                 } else if (error.request) {
                         console.error('Network error - no response received:', error.message);
                 } else {
                         console.error('Request setup error:', error.message);
-                }
-
-                if (error.response?.status === 401) {
-                        // Token expired or invalid
-                        localStorage.removeItem('token');
-                        window.location.href = '/login';
                 }
 
                 return Promise.reject(error);
@@ -130,6 +132,5 @@ export const getAttemptDetail = async (attemptId) => {
         const response = await api.get(`/api/attempt/${attemptId}`);
         return response.data;
 };
-
 
 export default api;
