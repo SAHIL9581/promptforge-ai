@@ -5,7 +5,7 @@ export default function Button({
         disabled = false,
         className = '',
         type = 'button',
-        isLoading = false  // Add loading prop
+        isLoading = false
 }) {
         const baseStyles = 'px-6 py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2';
 
