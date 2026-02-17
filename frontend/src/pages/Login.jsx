@@ -44,8 +44,31 @@ export default function Login() {
                         setToast({ message: 'Login successful! 🎉', type: 'success', visible: true });
                         setTimeout(() => navigate('/dashboard'), 800);
                 } catch (err) {
+                        console.error('Login error:', err);
+
+                        // ✅ Handle validation errors properly
+                        let errorMessage = 'Login failed. Please check your credentials.';
+
+                        if (err.response?.data?.detail) {
+                                const detail = err.response.data.detail;
+
+                                // If it's an array of validation errors
+                                if (Array.isArray(detail)) {
+                                        errorMessage = detail.map(error => {
+                                                if (typeof error === 'object' && error.msg) {
+                                                        return error.msg;
+                                                }
+                                                return String(error);
+                                        }).join(', ');
+                                } else if (typeof detail === 'string') {
+                                        errorMessage = detail;
+                                } else {
+                                        errorMessage = JSON.stringify(detail);
+                                }
+                        }
+
                         setToast({
-                                message: err?.response?.data?.detail || 'Login failed. Please check your credentials.',
+                                message: errorMessage,
                                 type: 'error',
                                 visible: true,
                         });
@@ -130,6 +153,7 @@ export default function Login() {
                                                                 placeholder="you@example.com"
                                                                 value={formData.email}
                                                                 onChange={handleChange}
+                                                                disabled={isLoading}
                                                         />
                                                         {errors.email && <p className="mt-1.5 text-sm text-danger">{errors.email}</p>}
                                                 </div>
@@ -144,11 +168,13 @@ export default function Login() {
                                                                         placeholder="••••••••"
                                                                         value={formData.password}
                                                                         onChange={handleChange}
+                                                                        disabled={isLoading}
                                                                 />
                                                                 <button
                                                                         type="button"
                                                                         className="absolute inset-y-0 right-3 flex items-center text-sm text-text-secondary hover:text-primary transition-colors"
                                                                         onClick={() => setShowPassword((v) => !v)}
+                                                                        disabled={isLoading}
                                                                 >
                                                                         {showPassword ? 'Hide' : 'Show'}
                                                                 </button>
@@ -158,10 +184,18 @@ export default function Login() {
 
                                                 <div className="flex items-center justify-between text-sm">
                                                         <label className="flex items-center gap-2 cursor-pointer">
-                                                                <input type="checkbox" className="w-4 h-4 rounded border-border bg-bg-input text-primary focus:ring-primary" />
+                                                                <input
+                                                                        type="checkbox"
+                                                                        className="w-4 h-4 rounded border-border bg-bg-input text-primary focus:ring-primary"
+                                                                        disabled={isLoading}
+                                                                />
                                                                 <span>Remember me</span>
                                                         </label>
-                                                        <button type="button" className="text-primary-light hover:text-primary transition-colors">
+                                                        <button
+                                                                type="button"
+                                                                className="text-primary-light hover:text-primary transition-colors disabled:opacity-50"
+                                                                disabled={isLoading}
+                                                        >
                                                                 Forgot password?
                                                         </button>
                                                 </div>
@@ -183,6 +217,7 @@ export default function Login() {
                                                         <button
                                                                 type="button"
                                                                 className="w-full btn-secondary flex items-center justify-center gap-2"
+                                                                disabled={isLoading}
                                                         >
                                                                 <span>🔐</span>
                                                                 <span>Continue with Google</span>
@@ -190,6 +225,7 @@ export default function Login() {
                                                         <button
                                                                 type="button"
                                                                 className="w-full btn-secondary flex items-center justify-center gap-2"
+                                                                disabled={isLoading}
                                                         >
                                                                 <span>🐙</span>
                                                                 <span>Continue with GitHub</span>

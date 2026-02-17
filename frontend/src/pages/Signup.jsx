@@ -52,8 +52,31 @@ export default function Signup() {
                         setToast({ message: 'Account created successfully! 🎉', type: 'success', visible: true });
                         setTimeout(() => navigate('/dashboard'), 800);
                 } catch (err) {
+                        console.error('Signup error:', err);
+
+                        // ✅ Handle validation errors properly
+                        let errorMessage = 'Signup failed. Please try again.';
+
+                        if (err.response?.data?.detail) {
+                                const detail = err.response.data.detail;
+
+                                // If it's an array of validation errors
+                                if (Array.isArray(detail)) {
+                                        errorMessage = detail.map(error => {
+                                                if (typeof error === 'object' && error.msg) {
+                                                        return error.msg;
+                                                }
+                                                return String(error);
+                                        }).join(', ');
+                                } else if (typeof detail === 'string') {
+                                        errorMessage = detail;
+                                } else {
+                                        errorMessage = JSON.stringify(detail);
+                                }
+                        }
+
                         setToast({
-                                message: err?.response?.data?.detail || 'Signup failed. Please try again.',
+                                message: errorMessage,
                                 type: 'error',
                                 visible: true,
                         });
@@ -138,6 +161,7 @@ export default function Signup() {
                                                                 placeholder="you@example.com"
                                                                 value={formData.email}
                                                                 onChange={handleChange}
+                                                                disabled={isLoading}
                                                         />
                                                         {errors.email && <p className="mt-1.5 text-sm text-danger">{errors.email}</p>}
                                                 </div>
@@ -152,16 +176,21 @@ export default function Signup() {
                                                                         placeholder="••••••••"
                                                                         value={formData.password}
                                                                         onChange={handleChange}
+                                                                        disabled={isLoading}
                                                                 />
                                                                 <button
                                                                         type="button"
-                                                                        className="absolute inset-y-0 right-3 flex items-center text-sm text-text-secondary hover:text-primary transition-colors"
+                                                                        className="absolute inset-y-0 right-3 flex items-center text-sm text-text-secondary hover:text-primary transition-colors disabled:opacity-50"
                                                                         onClick={() => setShowPassword((v) => !v)}
+                                                                        disabled={isLoading}
                                                                 >
                                                                         {showPassword ? 'Hide' : 'Show'}
                                                                 </button>
                                                         </div>
                                                         {errors.password && <p className="mt-1.5 text-sm text-danger">{errors.password}</p>}
+                                                        <p className="mt-1.5 text-xs text-text-secondary">
+                                                                Must be 8+ characters with uppercase and number
+                                                        </p>
                                                 </div>
 
                                                 <div>
@@ -173,20 +202,26 @@ export default function Signup() {
                                                                 placeholder="••••••••"
                                                                 value={formData.confirmPassword}
                                                                 onChange={handleChange}
+                                                                disabled={isLoading}
                                                         />
                                                         {errors.confirmPassword && <p className="mt-1.5 text-sm text-danger">{errors.confirmPassword}</p>}
                                                 </div>
 
                                                 <div className="text-sm">
                                                         <label className="flex items-start gap-2 cursor-pointer">
-                                                                <input type="checkbox" className="w-4 h-4 mt-0.5 rounded border-border bg-bg-input text-primary focus:ring-primary" required />
+                                                                <input
+                                                                        type="checkbox"
+                                                                        className="w-4 h-4 mt-0.5 rounded border-border bg-bg-input text-primary focus:ring-primary"
+                                                                        required
+                                                                        disabled={isLoading}
+                                                                />
                                                                 <span className="text-text-secondary">
                                                                         I agree to the{' '}
-                                                                        <button type="button" className="text-primary-light hover:text-primary">
+                                                                        <button type="button" className="text-primary-light hover:text-primary" disabled={isLoading}>
                                                                                 Terms of Service
                                                                         </button>{' '}
                                                                         and{' '}
-                                                                        <button type="button" className="text-primary-light hover:text-primary">
+                                                                        <button type="button" className="text-primary-light hover:text-primary" disabled={isLoading}>
                                                                                 Privacy Policy
                                                                         </button>
                                                                 </span>
@@ -207,11 +242,19 @@ export default function Signup() {
                                                 </div>
 
                                                 <div className="space-y-3">
-                                                        <button type="button" className="w-full btn-secondary flex items-center justify-center gap-2">
+                                                        <button
+                                                                type="button"
+                                                                className="w-full btn-secondary flex items-center justify-center gap-2"
+                                                                disabled={isLoading}
+                                                        >
                                                                 <span>🔐</span>
                                                                 <span>Sign up with Google</span>
                                                         </button>
-                                                        <button type="button" className="w-full btn-secondary flex items-center justify-center gap-2">
+                                                        <button
+                                                                type="button"
+                                                                className="w-full btn-secondary flex items-center justify-center gap-2"
+                                                                disabled={isLoading}
+                                                        >
                                                                 <span>🐙</span>
                                                                 <span>Sign up with GitHub</span>
                                                         </button>
