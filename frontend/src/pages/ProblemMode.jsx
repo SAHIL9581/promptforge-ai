@@ -50,22 +50,41 @@ export default function ProblemMode() {
                 setProblemType(type);
                 try {
                         const response = await api.get(`/api/problem/${type}`);
-                        setCurrentProblem(response.data);
+
+                        // ✅ FIXED: Handle both 'problem' and 'problem_text' keys
+                        const problemData = response.data;
+                        const problemText = problemData.problem || problemData.problem_text;
+
+                        if (!problemText) {
+                                throw new Error('No problem returned from API');
+                        }
+
+                        // ✅ Create normalized problem object
+                        const normalizedProblem = {
+                                title: type === 'system' ? 'System Design Challenge' : 'AI Problem Challenge',
+                                scenario: problemText,
+                                context: problemData.source || 'Generated Problem',
+                                source: problemData.source || (type === 'ai' ? 'AI Generated' : 'System'),
+                                difficulty: problemData.difficulty || 'Medium',
+                                requirements: problemData.requirements || [],
+                                constraints: problemData.constraints || [],
+                                example_input: problemData.example_input || '',
+                                example_output: problemData.example_output || '',
+                        };
+
+                        setCurrentProblem(normalizedProblem);
                         setUserPrompt('');
                         setWordCount(0);
                         setToast({ message: 'Problem loaded! 🎯', type: 'success', visible: true });
                 } catch (error) {
                         console.error('Problem fetch error:', error);
 
-                        // ✅ FIXED: Better error handling
                         let errorMessage = 'Failed to load problem.';
 
                         if (error.response?.data?.detail) {
-                                // Handle string or object detail
                                 if (typeof error.response.data.detail === 'string') {
                                         errorMessage = error.response.data.detail;
                                 } else if (Array.isArray(error.response.data.detail)) {
-                                        // Handle validation errors
                                         errorMessage = error.response.data.detail.map(e => e.msg).join(', ');
                                 } else {
                                         errorMessage = 'Server error occurred.';
@@ -92,7 +111,6 @@ export default function ProblemMode() {
 
                 setIsEvaluating(true);
                 try {
-                        // ✅ FIXED: Send proper format to backend
                         const response = await api.post('/api/evaluate', {
                                 problem_text: currentProblem.scenario || currentProblem.title,
                                 problem_source: currentProblem.source || 'Unknown',
@@ -109,7 +127,6 @@ export default function ProblemMode() {
                 } catch (error) {
                         console.error('Evaluation error:', error);
 
-                        // ✅ FIXED: Better error handling
                         let errorMessage = 'Evaluation failed. Please try again.';
 
                         if (error.response?.data?.detail) {
@@ -204,7 +221,7 @@ export default function ProblemMode() {
                                                                                         <p className="text-text-secondary text-sm leading-relaxed">{currentProblem.scenario}</p>
                                                                                 </div>
 
-                                                                                {currentProblem.requirements && (
+                                                                                {currentProblem.requirements && currentProblem.requirements.length > 0 && (
                                                                                         <div>
                                                                                                 <h3 className="font-semibold mb-2 text-primary">Requirements</h3>
                                                                                                 <ul className="space-y-2">
@@ -218,7 +235,7 @@ export default function ProblemMode() {
                                                                                         </div>
                                                                                 )}
 
-                                                                                {currentProblem.constraints && (
+                                                                                {currentProblem.constraints && currentProblem.constraints.length > 0 && (
                                                                                         <div>
                                                                                                 <h3 className="font-semibold mb-2 text-primary">Constraints</h3>
                                                                                                 <ul className="space-y-2">
