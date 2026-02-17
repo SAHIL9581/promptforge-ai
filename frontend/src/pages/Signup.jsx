@@ -4,12 +4,13 @@ import Button from '../components/Button';
 import Toast from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// ✅ Better email validation that accepts gmail.com
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export default function Signup() {
         const navigate = useNavigate();
         const { signup } = useAuth();
-        const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '' });
+        const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
         const [errors, setErrors] = useState({});
         const [showPassword, setShowPassword] = useState(false);
         const [isLoading, setIsLoading] = useState(false);
@@ -23,16 +24,16 @@ export default function Signup() {
 
         const validate = () => {
                 const newErrors = {};
-                if (!formData.email) newErrors.email = 'Email is required';
-                else if (!emailRegex.test(formData.email)) newErrors.email = 'Enter a valid email';
+
+                if (!formData.name.trim()) newErrors.name = 'Name is required';
+                else if (formData.name.trim().length < 2) newErrors.name = 'Name must be at least 2 characters';
+
+                if (!formData.email.trim()) newErrors.email = 'Email is required';
+                else if (!emailRegex.test(formData.email.trim())) newErrors.email = 'Enter a valid email address';
 
                 if (!formData.password) newErrors.password = 'Password is required';
                 else if (formData.password.length < 8)
                         newErrors.password = 'Password must be at least 8 characters';
-                else if (!/[A-Z]/.test(formData.password))
-                        newErrors.password = 'Password must contain at least one uppercase letter';
-                else if (!/[0-9]/.test(formData.password))
-                        newErrors.password = 'Password must contain at least one number';
 
                 if (!formData.confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
                 else if (formData.password !== formData.confirmPassword)
@@ -48,30 +49,40 @@ export default function Signup() {
 
                 setIsLoading(true);
                 try {
-                        await signup(formData.email, formData.password);
+                        // ✅ Trim and pass to signup
+                        const response = await signup(
+                                formData.name.trim(),
+                                formData.email.trim(),
+                                formData.password
+                        );
+
+                        console.log('Signup successful:', response);
                         setToast({ message: 'Account created successfully! 🎉', type: 'success', visible: true });
+
+                        // Store token if returned
+                        if (response.access_token) {
+                                localStorage.setItem('token', response.access_token);
+                        }
+
                         setTimeout(() => navigate('/dashboard'), 800);
                 } catch (err) {
                         console.error('Signup error:', err);
+                        console.log('Error response:', err.response?.data);
 
-                        // ✅ Handle validation errors properly
                         let errorMessage = 'Signup failed. Please try again.';
 
                         if (err.response?.data?.detail) {
                                 const detail = err.response.data.detail;
 
-                                // If it's an array of validation errors
                                 if (Array.isArray(detail)) {
                                         errorMessage = detail.map(error => {
                                                 if (typeof error === 'object' && error.msg) {
                                                         return error.msg;
                                                 }
                                                 return String(error);
-                                        }).join(', ');
+                                        }).join('. ');
                                 } else if (typeof detail === 'string') {
                                         errorMessage = detail;
-                                } else {
-                                        errorMessage = JSON.stringify(detail);
                                 }
                         }
 
@@ -153,6 +164,20 @@ export default function Signup() {
 
                                         <form className="space-y-5" onSubmit={handleSubmit}>
                                                 <div>
+                                                        <label className="block text-sm font-medium mb-2">Name</label>
+                                                        <input
+                                                                type="text"
+                                                                name="name"
+                                                                className="input-field"
+                                                                placeholder="John Doe"
+                                                                value={formData.name}
+                                                                onChange={handleChange}
+                                                                disabled={isLoading}
+                                                        />
+                                                        {errors.name && <p className="mt-1.5 text-sm text-danger">{errors.name}</p>}
+                                                </div>
+
+                                                <div>
                                                         <label className="block text-sm font-medium mb-2">Email</label>
                                                         <input
                                                                 type="email"
@@ -189,7 +214,7 @@ export default function Signup() {
                                                         </div>
                                                         {errors.password && <p className="mt-1.5 text-sm text-danger">{errors.password}</p>}
                                                         <p className="mt-1.5 text-xs text-text-secondary">
-                                                                Must be 8+ characters with uppercase and number
+                                                                Must be at least 8 characters
                                                         </p>
                                                 </div>
 
