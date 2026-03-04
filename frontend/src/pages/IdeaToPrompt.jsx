@@ -1,9 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import Sidebar from '../components/Sidebar';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Toast from '../components/Toast';
-import { generatePrompt } from '../services/api';  // ✅ Import the function
+import { generatePrompt } from '../services/api';
+
+const DS = {
+        bg: '#040610',
+        surface: 'rgba(10, 15, 30, 0.6)',
+        cyan: '#00e5ff',
+        cyanDim: '#00b8cc',
+        purple: '#7c3aed',
+        purple2: '#a855f7',
+        gold: '#f59e0b',
+        textPrimary: '#e2e8f0',
+        textMuted: '#64748b',
+        border: 'rgba(0, 229, 255, 0.12)',
+};
+
+const gradientText = {
+        background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+};
+
+const cardStyle = {
+        background: 'rgba(10, 15, 30, 0.6)',
+        border: '1px solid rgba(0, 229, 255, 0.12)',
+        borderRadius: '16px',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        padding: '24px',
+};
 
 export default function IdeaToPrompt() {
         const [ideaText, setIdeaText] = useState('');
@@ -11,6 +41,48 @@ export default function IdeaToPrompt() {
         const [isGenerating, setIsGenerating] = useState(false);
         const [showResult, setShowResult] = useState(false);
         const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
+
+        useEffect(() => {
+                const style = document.createElement('style');
+                style.id = 'pf-idea-fonts';
+                style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap');
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(32px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes glowPulse {
+        0%, 100% { box-shadow: 0 0 10px rgba(0,229,255,.3); }
+        50%       { box-shadow: 0 0 30px rgba(0,229,255,.6); }
+      }
+      @keyframes spin {
+        0%   { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .idea-textarea::placeholder { color: #64748b; }
+      .idea-textarea:focus {
+        border-color: rgba(0,229,255,.5) !important;
+        box-shadow: 0 0 0 3px rgba(0,229,255,.08) !important;
+        outline: none;
+      }
+      .example-btn:hover {
+        background: rgba(0,229,255,.06) !important;
+        color: #e2e8f0 !important;
+        border-color: rgba(0,229,255,.3) !important;
+      }
+      .pf-prose p { color: #94a3b8; line-height: 1.7; margin-bottom: 12px; font-family: 'DM Sans', sans-serif; font-size: 14px; }
+      .pf-prose strong { color: #e2e8f0; font-weight: 600; }
+      .pf-prose h1, .pf-prose h2, .pf-prose h3 { font-family: 'Orbitron', sans-serif; color: #fff; margin: 16px 0 8px; }
+      .pf-prose ul, .pf-prose ol { color: #94a3b8; padding-left: 20px; font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.8; }
+      .pf-prose li { margin-bottom: 4px; }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: #040610; }
+      ::-webkit-scrollbar-thumb { background: #00b8cc; border-radius: 4px; }
+    `;
+                if (!document.getElementById('pf-idea-fonts')) {
+                        document.head.appendChild(style);
+                }
+        }, []);
 
         const exampleIdeas = [
                 'Create a chatbot that helps students learn programming',
@@ -24,13 +96,9 @@ export default function IdeaToPrompt() {
                         setToast({ message: 'Please enter your idea first!', type: 'error', visible: true });
                         return;
                 }
-
                 setIsGenerating(true);
                 try {
-                        // ✅ Use the imported function which calls /api/generate-prompt
                         const response = await generatePrompt(ideaText);
-
-                        // ✅ Fixed: Use generated_prompt instead of prompt
                         setGeneratedPrompt(response.generated_prompt);
                         setShowResult(true);
                         setToast({ message: 'Prompt generated successfully! 🎉', type: 'success', visible: true });
@@ -58,170 +126,313 @@ export default function IdeaToPrompt() {
         };
 
         return (
-                <div className="flex min-h-screen">
+                <div style={{
+                        display: 'flex', minHeight: '100vh',
+                        background: DS.bg,
+                        backgroundImage: 'linear-gradient(rgba(0,229,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,.04) 1px, transparent 1px)',
+                        backgroundSize: '60px 60px',
+                        fontFamily: 'DM Sans, sans-serif',
+                }}>
                         <Sidebar />
 
-                        <main className="flex-1 ml-64 p-8 bg-gradient-to-br from-bg-dark via-bg-card to-bg-dark">
-                                <div className="max-w-5xl mx-auto">
-                                        <header className="text-center mb-12 animate-fade-in">
-                                                <h1 className="text-5xl font-extrabold bg-gradient-to-r from-primary to-accent-cyan bg-clip-text text-transparent mb-4">
-                                                        Idea → Prompt
+                        {/* Glow blobs */}
+                        <div style={{
+                                position: 'fixed', top: '10%', left: '15%', width: '400px', height: '400px', borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(0,229,255,.05) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0
+                        }} />
+                        <div style={{
+                                position: 'fixed', bottom: '10%', right: '5%', width: '350px', height: '350px', borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(124,58,237,.07) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0
+                        }} />
+
+                        <main style={{ flex: 1, marginLeft: '256px', padding: '32px', position: 'relative', zIndex: 1 }}>
+                                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+
+                                        {/* Header */}
+                                        <header style={{ textAlign: 'center', marginBottom: '48px', animation: 'slideUp 0.7s ease both' }}>
+                                                <div style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                        padding: '6px 16px', border: '1px solid rgba(0,229,255,.25)',
+                                                        borderRadius: '999px', background: 'rgba(0,229,255,.06)',
+                                                        fontSize: '13px', color: DS.cyan, letterSpacing: '.5px',
+                                                        marginBottom: '20px',
+                                                }}>
+                                                        ✨ Prompt Generator
+                                                </div>
+                                                <h1 style={{
+                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '52px', fontWeight: 900,
+                                                        letterSpacing: '-1px', color: '#fff', marginBottom: '16px',
+                                                }}>
+                                                        Idea{' '}
+                                                        <span style={gradientText}>→</span>
+                                                        {' '}Prompt
                                                 </h1>
-                                                <p className="text-xl text-text-secondary">
+                                                <p style={{ fontSize: '16px', color: DS.textMuted, maxWidth: '500px', margin: '0 auto', lineHeight: 1.7 }}>
                                                         Transform your creative ideas into powerful, actionable AI prompts
                                                 </p>
                                         </header>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                                {/* Input Section */}
-                                                <div className="space-y-6">
-                                                        <Card className="p-6 animate-slide-up">
-                                                                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                                                                        <span className="text-3xl">💡</span>
-                                                                        Your Idea
+                                        {/* Two Column Layout */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+
+                                                {/* LEFT — Input Section */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                                                        {/* Your Idea Card */}
+                                                        <div style={{ ...cardStyle, animation: 'slideUp 0.5s 0.1s ease both' }}>
+                                                                <h2 style={{
+                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '18px', fontWeight: 700,
+                                                                        color: '#fff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px',
+                                                                }}>
+                                                                        <span>💡</span> Your Idea
                                                                 </h2>
 
                                                                 <textarea
-                                                                        className="w-full min-h-[300px] p-4 bg-bg-input border border-border rounded-lg text-text-primary text-sm resize-y focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
-                                                                        placeholder="Describe your idea in plain English...
-
-Example:
-I want to create a system that analyzes customer reviews and extracts key insights about product quality, common complaints, and feature requests. It should categorize feedback by sentiment and priority."
+                                                                        className="idea-textarea"
+                                                                        style={{
+                                                                                width: '100%', minHeight: '280px', padding: '14px 16px',
+                                                                                background: 'rgba(0,0,0,0.4)',
+                                                                                border: '1px solid rgba(0,229,255,.15)',
+                                                                                borderRadius: '10px',
+                                                                                color: DS.textPrimary,
+                                                                                fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                                                                                resize: 'vertical', transition: 'border-color .2s, box-shadow .2s',
+                                                                                boxSizing: 'border-box',
+                                                                        }}
+                                                                        placeholder={`Describe your idea in plain English...\n\nExample:\nI want to create a system that analyzes customer reviews and extracts key insights about product quality, common complaints, and feature requests.`}
                                                                         value={ideaText}
                                                                         onChange={(e) => setIdeaText(e.target.value)}
                                                                         disabled={isGenerating}
                                                                 />
 
-                                                                <div className="mt-4">
-                                                                        <Button
+                                                                <div style={{ marginTop: '16px' }}>
+                                                                        <button
                                                                                 onClick={handleGenerate}
                                                                                 disabled={isGenerating || !ideaText.trim()}
-                                                                                className="w-full h-12 text-lg"
+                                                                                style={{
+                                                                                        width: '100%', height: '48px', borderRadius: '8px', border: 'none',
+                                                                                        background: isGenerating || !ideaText.trim()
+                                                                                                ? 'rgba(0,229,255,0.15)'
+                                                                                                : 'linear-gradient(135deg, #00e5ff, #00b8cc)',
+                                                                                        color: isGenerating || !ideaText.trim() ? DS.textMuted : '#000',
+                                                                                        fontFamily: 'DM Sans, sans-serif', fontWeight: 600, fontSize: '15px',
+                                                                                        cursor: isGenerating || !ideaText.trim() ? 'not-allowed' : 'pointer',
+                                                                                        boxShadow: isGenerating || !ideaText.trim() ? 'none' : '0 0 20px rgba(0,229,255,.35)',
+                                                                                        transition: 'transform .2s, box-shadow .2s',
+                                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                                                                }}
+                                                                                onMouseEnter={e => {
+                                                                                        if (!isGenerating && ideaText.trim()) {
+                                                                                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                                                                                e.currentTarget.style.boxShadow = '0 0 40px rgba(0,229,255,.5)';
+                                                                                        }
+                                                                                }}
+                                                                                onMouseLeave={e => {
+                                                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                                                        e.currentTarget.style.boxShadow = isGenerating || !ideaText.trim() ? 'none' : '0 0 20px rgba(0,229,255,.35)';
+                                                                                }}
                                                                         >
                                                                                 {isGenerating ? (
                                                                                         <>
-                                                                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                                                                                                <div style={{
+                                                                                                        width: '18px', height: '18px',
+                                                                                                        border: '2px solid rgba(0,0,0,0.2)',
+                                                                                                        borderTop: '2px solid #000',
+                                                                                                        borderRadius: '50%',
+                                                                                                        animation: 'spin 0.8s linear infinite',
+                                                                                                }} />
                                                                                                 Generating Magic...
                                                                                         </>
                                                                                 ) : (
-                                                                                        <>
-                                                                                                <span className="text-2xl mr-2">✨</span>
-                                                                                                Generate Optimized Prompt
-                                                                                        </>
+                                                                                        <> ✨ Generate Optimized Prompt </>
                                                                                 )}
-                                                                        </Button>
+                                                                        </button>
                                                                 </div>
-                                                        </Card>
+                                                        </div>
 
-                                                        <Card className="p-6 bg-gradient-to-br from-accent-cyan/10 to-primary/10 border-accent-cyan/30 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                                                                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                                                        <span className="text-xl">💡</span> Example Ideas
+                                                        {/* Example Ideas Card */}
+                                                        <div style={{
+                                                                ...cardStyle,
+                                                                borderColor: 'rgba(0,229,255,0.15)',
+                                                                background: 'rgba(0,229,255,0.03)',
+                                                                animation: 'slideUp 0.5s 0.2s ease both',
+                                                        }}>
+                                                                <h3 style={{
+                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700,
+                                                                        color: DS.cyan, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '14px',
+                                                                        display: 'flex', alignItems: 'center', gap: '8px',
+                                                                }}>
+                                                                        💡 Example Ideas
                                                                 </h3>
-                                                                <div className="space-y-2">
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                                         {exampleIdeas.map((example, index) => (
                                                                                 <button
                                                                                         key={index}
+                                                                                        className="example-btn"
                                                                                         onClick={() => setIdeaText(example)}
                                                                                         disabled={isGenerating}
-                                                                                        className="w-full text-left p-3 bg-bg-input hover:bg-bg-card border border-border rounded-lg text-sm text-text-secondary hover:text-text-primary transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                                        style={{
+                                                                                                width: '100%', textAlign: 'left', padding: '12px 14px',
+                                                                                                background: 'rgba(0,0,0,0.3)',
+                                                                                                border: '1px solid rgba(0,229,255,.12)',
+                                                                                                borderRadius: '8px', fontSize: '13px',
+                                                                                                color: DS.textMuted,
+                                                                                                fontFamily: 'DM Sans, sans-serif',
+                                                                                                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                                                                                                transition: 'all 0.2s',
+                                                                                                opacity: isGenerating ? 0.5 : 1,
+                                                                                        }}
                                                                                 >
                                                                                         {example}
                                                                                 </button>
                                                                         ))}
                                                                 </div>
-                                                        </Card>
+                                                        </div>
                                                 </div>
 
-                                                {/* Output Section */}
-                                                <div className="space-y-6">
+                                                {/* RIGHT — Output Section */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                                         {showResult ? (
                                                                 <>
-                                                                        <Card className="p-6 animate-slide-up border-2 border-success/30 bg-success/5">
-                                                                                <div className="flex items-center justify-between mb-4">
-                                                                                        <h2 className="text-2xl font-bold flex items-center gap-2">
-                                                                                                <span className="text-3xl">🎯</span>
-                                                                                                Generated Prompt
+                                                                        {/* Generated Prompt Card */}
+                                                                        <div style={{
+                                                                                ...cardStyle,
+                                                                                borderColor: 'rgba(0,229,255,0.25)',
+                                                                                animation: 'slideUp 0.5s ease both',
+                                                                        }}>
+                                                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                                                                                        <h2 style={{
+                                                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '18px', fontWeight: 700,
+                                                                                                color: '#fff', display: 'flex', alignItems: 'center', gap: '10px',
+                                                                                        }}>
+                                                                                                <span>🎯</span> Generated Prompt
                                                                                         </h2>
-                                                                                        <div className="flex gap-2">
-                                                                                                <Button onClick={handleCopy} variant="secondary" className="text-sm">
+                                                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                                                                <button
+                                                                                                        onClick={handleCopy}
+                                                                                                        style={{
+                                                                                                                padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                                                                                                                background: 'transparent', color: DS.cyan,
+                                                                                                                border: '1px solid rgba(0,229,255,.3)',
+                                                                                                                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', transition: 'all .2s',
+                                                                                                        }}
+                                                                                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,.08)'}
+                                                                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                                                                >
                                                                                                         📋 Copy
-                                                                                                </Button>
-                                                                                                <Button onClick={handleReset} variant="secondary" className="text-sm">
+                                                                                                </button>
+                                                                                                <button
+                                                                                                        onClick={handleReset}
+                                                                                                        style={{
+                                                                                                                padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                                                                                                                background: 'transparent', color: DS.textMuted,
+                                                                                                                border: '1px solid rgba(255,255,255,.1)',
+                                                                                                                fontFamily: 'DM Sans, sans-serif', cursor: 'pointer', transition: 'all .2s',
+                                                                                                        }}
+                                                                                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.05)'}
+                                                                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                                                                >
                                                                                                         🔄 Reset
-                                                                                                </Button>
+                                                                                                </button>
                                                                                         </div>
                                                                                 </div>
 
-                                                                                <div className="p-4 bg-bg-dark/50 border border-primary/30 rounded-lg">
-                                                                                        <pre className="text-sm text-text-primary font-mono whitespace-pre-wrap leading-relaxed">
-                                                                                                {generatedPrompt}
-                                                                                        </pre>
+                                                                                <div style={{
+                                                                                        padding: '20px',
+                                                                                        background: 'rgba(0,0,0,0.5)',
+                                                                                        border: '1px solid rgba(0,229,255,.12)',
+                                                                                        borderRadius: '10px',
+                                                                                        maxHeight: '520px',
+                                                                                        overflowY: 'auto',
+                                                                                }}>
+                                                                                        <div className="pf-prose">
+                                                                                                <ReactMarkdown>{generatedPrompt}</ReactMarkdown>
+                                                                                        </div>
                                                                                 </div>
-                                                                        </Card>
+                                                                        </div>
 
-                                                                        <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                                                                                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                                                                        <span className="text-xl">📈</span> How to Use This Prompt
+                                                                        {/* How to Use Card */}
+                                                                        <div style={{ ...cardStyle, animation: 'slideUp 0.5s 0.1s ease both' }}>
+                                                                                <h3 style={{
+                                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700,
+                                                                                        color: DS.cyan, letterSpacing: '2px', textTransform: 'uppercase',
+                                                                                        marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px',
+                                                                                }}>
+                                                                                        📈 How to Use This Prompt
                                                                                 </h3>
-                                                                                <ol className="space-y-3 text-sm text-text-secondary">
-                                                                                        <li className="pl-6 relative">
-                                                                                                <span className="absolute left-0 text-primary font-bold">1.</span>
-                                                                                                Copy the generated prompt to your clipboard
-                                                                                        </li>
-                                                                                        <li className="pl-6 relative">
-                                                                                                <span className="absolute left-0 text-primary font-bold">2.</span>
-                                                                                                Paste it into ChatGPT, Claude, or your AI tool
-                                                                                        </li>
-                                                                                        <li className="pl-6 relative">
-                                                                                                <span className="absolute left-0 text-primary font-bold">3.</span>
-                                                                                                Review and customize based on your needs
-                                                                                        </li>
-                                                                                        <li className="pl-6 relative">
-                                                                                                <span className="absolute left-0 text-primary font-bold">4.</span>
-                                                                                                Iterate and refine the prompt for better results
-                                                                                        </li>
+                                                                                <ol style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '0', listStyle: 'none' }}>
+                                                                                        {[
+                                                                                                'Copy the generated prompt to your clipboard',
+                                                                                                'Paste it into ChatGPT, Claude, or your AI tool',
+                                                                                                'Review and customize based on your needs',
+                                                                                                'Iterate and refine the prompt for better results',
+                                                                                        ].map((step, i) => (
+                                                                                                <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', color: DS.textMuted }}>
+                                                                                                        <span style={{
+                                                                                                                minWidth: '24px', height: '24px', borderRadius: '50%',
+                                                                                                                background: 'rgba(0,229,255,.1)', border: '1px solid rgba(0,229,255,.25)',
+                                                                                                                color: DS.cyan, fontSize: '12px', fontFamily: 'Orbitron, sans-serif',
+                                                                                                                fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                                                        }}>
+                                                                                                                {i + 1}
+                                                                                                        </span>
+                                                                                                        {step}
+                                                                                                </li>
+                                                                                        ))}
                                                                                 </ol>
-                                                                        </Card>
+                                                                        </div>
                                                                 </>
                                                         ) : (
-                                                                <Card className="p-8 flex items-center justify-center min-h-[400px] animate-slide-up">
-                                                                        <div className="text-center">
-                                                                                <div className="text-7xl mb-6 animate-bounce">💭</div>
-                                                                                <h3 className="text-2xl font-bold mb-3">Ready to Transform Your Idea?</h3>
-                                                                                <p className="text-text-secondary max-w-md">
+                                                                /* Empty State */
+                                                                <div style={{
+                                                                        ...cardStyle,
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                        minHeight: '360px', animation: 'slideUp 0.5s ease both',
+                                                                }}>
+                                                                        <div style={{ textAlign: 'center' }}>
+                                                                                <div style={{ fontSize: '64px', marginBottom: '20px' }}>💭</div>
+                                                                                <h3 style={{
+                                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '20px', fontWeight: 700,
+                                                                                        color: '#fff', marginBottom: '12px',
+                                                                                }}>
+                                                                                        Ready to Transform Your Idea?
+                                                                                </h3>
+                                                                                <p style={{ color: DS.textMuted, fontSize: '14px', maxWidth: '320px', lineHeight: 1.7 }}>
                                                                                         Enter your idea on the left and click "Generate" to create an optimized AI prompt
                                                                                 </p>
                                                                         </div>
-                                                                </Card>
+                                                                </div>
                                                         )}
 
-                                                        <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent-pink/10 border-primary/30 animate-slide-up" style={{ animationDelay: showResult ? '0.2s' : '0.1s' }}>
-                                                                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                                                                        <span className="text-xl">⭐</span> Prompt Engineering Tips
+                                                        {/* Tips Card */}
+                                                        <div style={{
+                                                                ...cardStyle,
+                                                                background: 'rgba(124,58,237,0.05)',
+                                                                borderColor: 'rgba(168,85,247,0.2)',
+                                                                animation: `slideUp 0.5s ${showResult ? '0.2s' : '0.1s'} ease both`,
+                                                        }}>
+                                                                <h3 style={{
+                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700,
+                                                                        color: DS.purple2, letterSpacing: '2px', textTransform: 'uppercase',
+                                                                        marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px',
+                                                                }}>
+                                                                        ⭐ Prompt Engineering Tips
                                                                 </h3>
-                                                                <ul className="space-y-2 text-sm text-text-secondary">
-                                                                        <li className="flex items-start gap-2">
-                                                                                <span className="text-primary">•</span>
-                                                                                <span>Be specific about your goal and desired outcome</span>
-                                                                        </li>
-                                                                        <li className="flex items-start gap-2">
-                                                                                <span className="text-primary">•</span>
-                                                                                <span>Include context and any relevant constraints</span>
-                                                                        </li>
-                                                                        <li className="flex items-start gap-2">
-                                                                                <span className="text-primary">•</span>
-                                                                                <span>Specify the format and structure of the output</span>
-                                                                        </li>
-                                                                        <li className="flex items-start gap-2">
-                                                                                <span className="text-primary">•</span>
-                                                                                <span>Provide examples when possible for better results</span>
-                                                                        </li>
-                                                                        <li className="flex items-start gap-2">
-                                                                                <span className="text-primary">•</span>
-                                                                                <span>Test and iterate - refine based on AI responses</span>
-                                                                        </li>
+                                                                <ul style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '0', listStyle: 'none' }}>
+                                                                        {[
+                                                                                'Be specific about your goal and desired outcome',
+                                                                                'Include context and any relevant constraints',
+                                                                                'Specify the format and structure of the output',
+                                                                                'Provide examples when possible for better results',
+                                                                                'Test and iterate — refine based on AI responses',
+                                                                        ].map((tip, i) => (
+                                                                                <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px', color: DS.textMuted }}>
+                                                                                        <span style={{ color: DS.purple2, marginTop: '2px' }}>•</span>
+                                                                                        {tip}
+                                                                                </li>
+                                                                        ))}
                                                                 </ul>
-                                                        </Card>
+                                                        </div>
                                                 </div>
                                         </div>
                                 </div>

@@ -32,13 +32,12 @@ def evaluate_technical_challenge(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Evaluate a technical challenge submission and save to database"""
+    """Evaluate a technical challenge submission"""
     try:
         print("=" * 50)
         print("TECHNICAL EVALUATION STARTED")
         print(f"Problem: {evaluation_req.problem.get('title', 'Unknown')}")
         print(f"Category: {evaluation_req.problem.get('category', 'Unknown')}")
-        print(f"User: {current_user.email}")
         print(f"Prompt length: {len(evaluation_req.user_prompt)}")
         print("=" * 50)
         
@@ -49,7 +48,8 @@ def evaluate_technical_challenge(
             evaluation_req.constraints
         )
         
-        print(f"Technical evaluation completed! Score: {evaluation_result['overall_score']}")
+        print("Technical evaluation completed successfully!")
+        print(f"Overall score: {evaluation_result['overall_score']}")
         
         # Calculate XP
         xp_earned = evaluation_result.get("xp_earned", calculate_xp(evaluation_result["overall_score"]))
@@ -61,10 +61,8 @@ def evaluate_technical_challenge(
         new_level = update_user_level(current_user.xp)
         current_user.level = new_level
         
-        # ✅ CREATE PROBLEM TEXT FOR DATABASE
+        # ✅ SAVE ATTEMPT TO DATABASE
         problem_text = f"[{evaluation_req.problem.get('category', 'Technical').upper()}] {evaluation_req.problem.get('title', 'Challenge')}\n\n"
-        
-        # Add description based on problem type
         if 'description' in evaluation_req.problem:
             problem_text += evaluation_req.problem['description']
         elif 'problem_statement' in evaluation_req.problem:
@@ -72,7 +70,6 @@ def evaluate_technical_challenge(
         elif 'scenario' in evaluation_req.problem:
             problem_text += evaluation_req.problem['scenario']
         
-        # ✅ SAVE ATTEMPT TO DATABASE
         attempt = Attempt(
             user_id=current_user.id,
             problem_text=problem_text,
@@ -93,9 +90,7 @@ def evaluate_technical_challenge(
         )
         db.add(attempt)
         
-        print(f"✅ Attempt saved for user {current_user.id}")
-        
-        # ✅ UPDATE USER PROGRESS
+        # Update user progress
         progress = current_user.progress
         if progress:
             progress.attempts_count = current_user.total_attempts
@@ -107,32 +102,23 @@ def evaluate_technical_challenge(
             if all_attempts:
                 progress.average_score = sum(a.overall_score for a in all_attempts) / len(all_attempts)
                 progress.best_score = max(a.overall_score for a in all_attempts)
-            
-            print(f"✅ Progress updated: {progress.attempts_count} attempts, avg: {progress.average_score:.1f}")
         
-        # ✅ CHECK FOR BADGES
+        # Check for badges
         badges_earned = check_and_award_badges(current_user, db)
         
-        if badges_earned:
-            print(f"🏆 Badges earned: {badges_earned}")
-        
-        # ✅ COMMIT TO DATABASE
         db.commit()
-        print("✅ Database commit successful")
         
         # Add user info to response
         evaluation_result["xp_earned"] = xp_earned
         evaluation_result["new_level"] = new_level
         evaluation_result["badges_earned"] = badges_earned
         
-        print("=" * 50)
-        
         return TechnicalEvaluationResponse(**evaluation_result)
         
     except Exception as e:
         db.rollback()
         print("=" * 50)
-        print("❌ ERROR IN TECHNICAL EVALUATION:")
+        print("ERROR IN TECHNICAL EVALUATION:")
         print(f"Error type: {type(e).__name__}")
         print(f"Error message: {str(e)}")
         print("Full traceback:")

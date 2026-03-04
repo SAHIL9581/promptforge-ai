@@ -14,6 +14,7 @@ import TechnicalChallengeSelector from './pages/TechnicalChallengeSelector';
 import TechnicalChallenge from './pages/TechnicalChallenge';
 import TechnicalEvaluation from './pages/TechnicalEvaluation';
 import AttemptDetail from './pages/AttemptDetail';
+import LandingPage from './pages/LandingPage';
 
 function App() {
         const { user, loading } = useAuth();
@@ -33,6 +34,12 @@ function App() {
                 <Router>
                         <div className="min-h-screen bg-bg-dark transition-colors duration-200">
                                 <Routes>
+                                        {/* Landing Page - always public */}
+                                        <Route
+                                                path="/"
+                                                element={<LandingPage />}
+                                        />
+
                                         {/* Public Routes */}
                                         <Route
                                                 path="/login"
@@ -63,7 +70,6 @@ function App() {
                                                 }
                                         />
 
-                                        {/* ✅ FIXED: Changed PrivateRoute to ProtectedRoute */}
                                         <Route
                                                 path="/attempt/:id"
                                                 element={
@@ -131,16 +137,10 @@ function App() {
                                                 }
                                         />
 
-                                        {/* Default Route */}
-                                        <Route
-                                                path="/"
-                                                element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
-                                        />
-
                                         {/* Catch all - redirect */}
                                         <Route
                                                 path="*"
-                                                element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
+                                                element={<Navigate to={user ? '/dashboard' : '/'} replace />}
                                         />
                                 </Routes>
                         </div>

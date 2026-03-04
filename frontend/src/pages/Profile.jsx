@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import {
+        LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+        ResponsiveContainer, PieChart, Pie, Cell,
+        RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+} from 'recharts';
 import Sidebar from '../components/Sidebar';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
@@ -7,6 +11,53 @@ import Button from '../components/Button';
 import Toast from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+
+const DS = {
+        bg: '#040610',
+        surface: 'rgba(10, 15, 30, 0.6)',
+        cyan: '#00e5ff',
+        cyanDim: '#00b8cc',
+        purple: '#7c3aed',
+        purple2: '#a855f7',
+        gold: '#f59e0b',
+        textPrimary: '#e2e8f0',
+        textMuted: '#64748b',
+        border: 'rgba(0, 229, 255, 0.12)',
+};
+
+const gradientText = {
+        background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+};
+
+const cardStyle = {
+        background: 'rgba(10, 15, 30, 0.6)',
+        border: '1px solid rgba(0, 229, 255, 0.12)',
+        borderRadius: '16px',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        padding: '24px',
+};
+
+const PIE_COLORS = ['#00e5ff', '#a855f7', '#22c55e', '#f59e0b', '#ec4899'];
+
+const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+                return (
+                        <div style={{
+                                background: 'rgba(4,6,16,0.95)', border: '1px solid rgba(0,229,255,0.2)',
+                                borderRadius: '8px', padding: '10px 14px',
+                                fontFamily: 'DM Sans, sans-serif', fontSize: '13px', color: '#e2e8f0',
+                        }}>
+                                <p style={{ color: DS.cyan, fontFamily: 'Orbitron, sans-serif', fontSize: '11px', marginBottom: '4px' }}>{label}</p>
+                                <p>{payload[0]?.value}</p>
+                        </div>
+                );
+        }
+        return null;
+};
 
 export default function Profile() {
         const { user } = useAuth();
@@ -18,50 +69,56 @@ export default function Profile() {
 
         useEffect(() => {
                 fetchProfile();
+                const style = document.createElement('style');
+                style.id = 'pf-profile-fonts';
+                style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap');
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(32px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fillBar { from { width: 0; } }
+      @keyframes glowPulse {
+        0%,100% { box-shadow: 0 0 10px rgba(0,229,255,.3); }
+        50%      { box-shadow: 0 0 30px rgba(0,229,255,.6); }
+      }
+      @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+      .pf-input::placeholder { color: #64748b; }
+      .pf-input:focus {
+        border-color: rgba(0,229,255,.5) !important;
+        box-shadow: 0 0 0 3px rgba(0,229,255,.08) !important;
+        outline: none;
+      }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: #040610; }
+      ::-webkit-scrollbar-thumb { background: #00b8cc; border-radius: 4px; }
+    `;
+                if (!document.getElementById('pf-profile-fonts')) {
+                        document.head.appendChild(style);
+                }
         }, []);
 
         const fetchProfile = async () => {
                 try {
                         const response = await api.get('/api/profile');
                         setProfileData(response.data);
-                        setFormData({
-                                name: response.data.name || '',
-                                bio: response.data.bio || '',
-                        });
+                        setFormData({ name: response.data.name || '', bio: response.data.bio || '' });
                 } catch (error) {
                         console.error('Failed to fetch profile:', error);
-
-                        // Enhanced fallback data
                         if (error.response?.status === 404 || error.response?.status === 500) {
                                 const fallbackData = {
-                                        name: user?.email?.split('@')[0] || 'User',
-                                        bio: '',
-                                        level: 1,
-                                        xp: 0,
-                                        total_attempts: 0,
-                                        average_score: 0,
-                                        streak: 0,
-                                        badges: [],
-                                        joined_date: new Date().toISOString(),
-                                        recent_scores: [],
+                                        name: user?.email?.split('@')[0] || 'User', bio: '',
+                                        level: 1, xp: 0, total_attempts: 0, average_score: 0, streak: 0,
+                                        badges: [], joined_date: new Date().toISOString(), recent_scores: [],
                                         category_stats: {
                                                 'Prompt Engineering': { completed: 0, avg_score: 0 },
                                                 'Technical Challenges': { completed: 0, avg_score: 0 },
-                                                'System Design': { completed: 0, avg_score: 0 }
+                                                'System Design': { completed: 0, avg_score: 0 },
                                         },
-                                        skill_levels: {
-                                                clarity: 0,
-                                                specificity: 0,
-                                                effectiveness: 0,
-                                                problem_solving: 0,
-                                                code_quality: 0
-                                        }
+                                        skill_levels: { clarity: 0, specificity: 0, effectiveness: 0, problem_solving: 0, code_quality: 0 },
                                 };
                                 setProfileData(fallbackData);
-                                setFormData({
-                                        name: fallbackData.name,
-                                        bio: fallbackData.bio,
-                                });
+                                setFormData({ name: fallbackData.name, bio: fallbackData.bio });
                         }
                 } finally {
                         setIsLoading(false);
@@ -75,110 +132,71 @@ export default function Profile() {
                         setIsEditing(false);
                         setToast({ message: 'Profile updated successfully! ✓', type: 'success', visible: true });
                 } catch (error) {
-                        setToast({
-                                message: error?.response?.data?.detail || 'Failed to update profile.',
-                                type: 'error',
-                                visible: true,
-                        });
+                        setToast({ message: error?.response?.data?.detail || 'Failed to update profile.', type: 'error', visible: true });
                 }
         };
 
-        // Calculate profile strength (0-100)
         const calculateProfileStrength = () => {
                 if (!profileData) return 0;
-
                 let strength = 0;
-
-                // Name and bio (20 points)
                 if (profileData.name) strength += 10;
                 if (profileData.bio && profileData.bio.length > 20) strength += 10;
-
-                // Challenges completed (30 points)
-                const challengeScore = Math.min((profileData.total_attempts || 0) / 10 * 30, 30);
-                strength += challengeScore;
-
-                // Average score (25 points)
-                const avgScore = (profileData.average_score || 0) / 100 * 25;
-                strength += avgScore;
-
-                // Streak (15 points)
-                const streakScore = Math.min((profileData.streak || 0) / 7 * 15, 15);
-                strength += streakScore;
-
-                // Badges (10 points)
-                const badgeScore = Math.min((profileData.badges?.length || 0) / 5 * 10, 10);
-                strength += badgeScore;
-
+                strength += Math.min((profileData.total_attempts || 0) / 10 * 30, 30);
+                strength += (profileData.average_score || 0) / 100 * 25;
+                strength += Math.min((profileData.streak || 0) / 7 * 15, 15);
+                strength += Math.min((profileData.badges?.length || 0) / 5 * 10, 10);
                 return Math.round(strength);
         };
 
         const profileStrength = calculateProfileStrength();
 
-        // Prepare chart data
         const recentPerformanceData = profileData?.recent_scores?.slice(-10).map((score, idx) => ({
-                challenge: `#${idx + 1}`,
-                score: score
+                challenge: `#${idx + 1}`, score,
         })) || [];
 
         const categoryData = Object.entries(profileData?.category_stats || {}).map(([name, stats]) => ({
-                name,
-                completed: stats.completed,
-                avgScore: stats.avg_score
+                name, completed: stats.completed, avgScore: stats.avg_score,
         }));
 
         const skillRadarData = Object.entries(profileData?.skill_levels || {}).map(([skill, level]) => ({
-                skill: skill.charAt(0).toUpperCase() + skill.slice(1).replace('_', ' '),
-                level: level
+                skill: skill.charAt(0).toUpperCase() + skill.slice(1).replace('_', ' '), level,
         }));
 
-        // Circular Progress Component
         const CircularProgress = ({ score, size = 120, strokeWidth = 8 }) => {
                 const radius = (size - strokeWidth) / 2;
                 const circumference = radius * 2 * Math.PI;
                 const offset = circumference - (score / 100) * circumference;
-
-                const getColor = (score) => {
-                        if (score >= 80) return '#10b981';
-                        if (score >= 60) return '#06b6d4';
-                        if (score >= 40) return '#f59e0b';
+                const getColor = (s) => {
+                        if (s >= 80) return '#22c55e';
+                        if (s >= 60) return '#00e5ff';
+                        if (s >= 40) return '#f59e0b';
                         return '#ef4444';
                 };
-
                 return (
-                        <svg width={size} height={size} className="transform -rotate-90">
-                                <circle
-                                        cx={size / 2}
-                                        cy={size / 2}
-                                        r={radius}
-                                        stroke="currentColor"
-                                        strokeWidth={strokeWidth}
-                                        fill="none"
-                                        className="text-bg-input"
-                                />
-                                <circle
-                                        cx={size / 2}
-                                        cy={size / 2}
-                                        r={radius}
-                                        stroke={getColor(score)}
-                                        strokeWidth={strokeWidth}
-                                        fill="none"
-                                        strokeDasharray={circumference}
-                                        strokeDashoffset={offset}
-                                        className="transition-all duration-1000 ease-out"
+                        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+                                <circle cx={size / 2} cy={size / 2} r={radius}
+                                        fill="none" stroke="rgba(255,255,255,.06)" strokeWidth={strokeWidth} />
+                                <circle cx={size / 2} cy={size / 2} r={radius}
+                                        fill="none" stroke={getColor(score)} strokeWidth={strokeWidth}
+                                        strokeDasharray={circumference} strokeDashoffset={offset}
                                         strokeLinecap="round"
-                                />
+                                        style={{ transition: 'stroke-dashoffset 1s ease', filter: `drop-shadow(0 0 6px ${getColor(score)})` }} />
                         </svg>
                 );
         };
 
         if (isLoading) {
                 return (
-                        <div className="flex min-h-screen">
+                        <div style={{ display: 'flex', minHeight: '100vh', background: DS.bg, fontFamily: 'DM Sans, sans-serif' }}>
                                 <Sidebar />
-                                <main className="flex-1 ml-64 p-8 flex items-center justify-center">
-                                        <div className="text-center">
-                                                <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-                                                <p className="text-text-secondary">Loading profile...</p>
+                                <main style={{ flex: 1, marginLeft: '256px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div style={{ textAlign: 'center' }}>
+                                                <div style={{
+                                                        width: '56px', height: '56px', margin: '0 auto 16px',
+                                                        border: '3px solid rgba(0,229,255,.15)', borderTop: '3px solid #00e5ff',
+                                                        borderRadius: '50%', animation: 'spin 0.8s linear infinite',
+                                                }} />
+                                                <p style={{ color: DS.textMuted, fontSize: '14px' }}>Loading profile...</p>
                                         </div>
                                 </main>
                         </div>
@@ -186,342 +204,503 @@ export default function Profile() {
         }
 
         return (
-                <div className="flex min-h-screen">
+                <div style={{
+                        display: 'flex', minHeight: '100vh', background: DS.bg,
+                        backgroundImage: 'linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px)',
+                        backgroundSize: '60px 60px', fontFamily: 'DM Sans, sans-serif',
+                }}>
                         <Sidebar />
 
-                        <main className="flex-1 ml-64 p-8 bg-gradient-to-br from-bg-dark via-bg-card to-bg-dark">
-                                <div className="max-w-7xl mx-auto">
-                                        <header className="mb-8 animate-fade-in">
-                                                <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-primary via-accent-cyan to-accent-pink bg-clip-text text-transparent">
-                                                        Your Profile
+                        {/* Glow blobs */}
+                        <div style={{
+                                position: 'fixed', top: '10%', left: '15%', width: '400px', height: '400px', borderRadius: '50%',
+                                background: 'radial-gradient(circle,rgba(0,229,255,.05) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0
+                        }} />
+                        <div style={{
+                                position: 'fixed', bottom: '10%', right: '5%', width: '350px', height: '350px', borderRadius: '50%',
+                                background: 'radial-gradient(circle,rgba(124,58,237,.07) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0
+                        }} />
+
+                        <main style={{ flex: 1, marginLeft: '256px', padding: '32px', position: 'relative', zIndex: 1 }}>
+                                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+
+                                        {/* Page Title */}
+                                        <header style={{ marginBottom: '32px', animation: 'slideUp 0.7s ease both' }}>
+                                                <div style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                        padding: '6px 16px', border: '1px solid rgba(0,229,255,.25)',
+                                                        borderRadius: '999px', background: 'rgba(0,229,255,.06)',
+                                                        fontSize: '13px', color: DS.cyan, letterSpacing: '.5px', marginBottom: '12px',
+                                                }}>
+                                                        👤 Your Profile
+                                                </div>
+                                                <h1 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '40px', fontWeight: 900, color: '#fff', letterSpacing: '-1px' }}>
+                                                        Profile & <span style={gradientText}>Progress</span>
                                                 </h1>
-                                                <p className="text-text-secondary">Track your journey and celebrate your achievements</p>
                                         </header>
 
-                                        {/* Profile Strength Banner */}
-                                        <Card className="p-6 mb-8 bg-gradient-to-br from-primary/5 via-accent-cyan/5 to-accent-pink/5 border-2 border-primary/20 animate-slide-up">
-                                                <div className="flex items-center justify-between">
-                                                        <div className="flex-1">
-                                                                <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                                                                        <span className="text-2xl">⭐</span>
-                                                                        Profile Strength
-                                                                </h3>
-                                                                <div className="flex items-center gap-4">
-                                                                        <div className="flex-1 bg-bg-input rounded-full h-4 overflow-hidden">
-                                                                                <div
-                                                                                        className="h-full bg-gradient-to-r from-primary via-accent-cyan to-success transition-all duration-1000 ease-out"
-                                                                                        style={{ width: `${profileStrength}%` }}
-                                                                                ></div>
-                                                                        </div>
-                                                                        <span className="text-2xl font-bold text-primary min-w-[60px]">{profileStrength}%</span>
+                                        {/* Row 1 — Profile Card + Stats */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', marginBottom: '24px', animation: 'slideUp 0.5s 0.1s ease both' }}>
+
+                                                {/* Profile Card */}
+                                                <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                                                        {/* Avatar + Name */}
+                                                        <div style={{ textAlign: 'center' }}>
+                                                                <div style={{
+                                                                        width: '88px', height: '88px', borderRadius: '50%', margin: '0 auto 16px',
+                                                                        background: 'linear-gradient(135deg, #00e5ff, #a855f7)',
+                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                        fontSize: '36px', fontWeight: 900, color: '#000',
+                                                                        fontFamily: 'Orbitron, sans-serif',
+                                                                        boxShadow: '0 0 30px rgba(0,229,255,.4)',
+                                                                        animation: 'glowPulse 2s ease-in-out infinite',
+                                                                }}>
+                                                                        {(profileData?.name || user?.email || 'U').charAt(0).toUpperCase()}
                                                                 </div>
-                                                                <p className="text-sm text-text-secondary mt-2">
-                                                                        {profileStrength < 30 && "🚀 Just getting started! Complete more challenges."}
-                                                                        {profileStrength >= 30 && profileStrength < 60 && "💪 Making progress! Keep up the good work."}
+
+                                                                {isEditing ? (
+                                                                        <input
+                                                                                className="pf-input"
+                                                                                value={formData.name}
+                                                                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                                                style={{
+                                                                                        width: '100%', padding: '10px 14px',
+                                                                                        background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,229,255,.15)',
+                                                                                        borderRadius: '8px', color: DS.textPrimary,
+                                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '16px', fontWeight: 700,
+                                                                                        textAlign: 'center', marginBottom: '10px', boxSizing: 'border-box',
+                                                                                }}
+                                                                                placeholder="Your name"
+                                                                        />
+                                                                ) : (
+                                                                        <h2 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
+                                                                                {profileData?.name || user?.email?.split('@')[0] || 'User'}
+                                                                        </h2>
+                                                                )}
+
+                                                                <span style={{
+                                                                        padding: '3px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600,
+                                                                        background: 'rgba(0,229,255,.08)', color: DS.cyan, border: '1px solid rgba(0,229,255,.2)',
+                                                                }}>
+                                                                        Level {profileData?.level || 1}
+                                                                </span>
+                                                        </div>
+
+                                                        {/* Bio */}
+                                                        <div>
+                                                                <p style={{
+                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '11px', color: DS.textMuted,
+                                                                        letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px'
+                                                                }}>Bio</p>
+                                                                {isEditing ? (
+                                                                        <textarea
+                                                                                className="pf-input"
+                                                                                value={formData.bio}
+                                                                                onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                                                                rows={3}
+                                                                                style={{
+                                                                                        width: '100%', padding: '10px 14px',
+                                                                                        background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,229,255,.15)',
+                                                                                        borderRadius: '8px', color: DS.textPrimary,
+                                                                                        fontFamily: 'DM Sans, sans-serif', fontSize: '14px',
+                                                                                        resize: 'none', boxSizing: 'border-box',
+                                                                                }}
+                                                                                placeholder="Tell us about yourself..."
+                                                                        />
+                                                                ) : (
+                                                                        <p style={{ color: DS.textMuted, fontSize: '14px', lineHeight: 1.7 }}>
+                                                                                {profileData?.bio || 'No bio added yet. Click Edit to add one.'}
+                                                                        </p>
+                                                                )}
+                                                        </div>
+
+                                                        {/* Email (read-only) */}
+                                                        <div>
+                                                                <p style={{
+                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '11px', color: DS.textMuted,
+                                                                        letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px'
+                                                                }}>Email</p>
+                                                                <div style={{
+                                                                        padding: '10px 14px', background: 'rgba(0,0,0,0.3)',
+                                                                        border: '1px solid rgba(255,255,255,.05)', borderRadius: '8px',
+                                                                        fontSize: '13px', color: DS.textMuted,
+                                                                }}>
+                                                                        {user?.email}
+                                                                </div>
+                                                                <p style={{ fontSize: '11px', color: DS.textMuted, marginTop: '4px' }}>Email cannot be changed</p>
+                                                        </div>
+
+                                                        {/* Profile Strength */}
+                                                        <div>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                                        <p style={{
+                                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '11px', color: DS.textMuted,
+                                                                                letterSpacing: '1px', textTransform: 'uppercase'
+                                                                        }}>Profile Strength</p>
+                                                                        <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, ...gradientText }}>
+                                                                                {profileStrength}%
+                                                                        </span>
+                                                                </div>
+                                                                <div style={{ height: '6px', background: 'rgba(255,255,255,.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                                                                        <div style={{
+                                                                                height: '100%', width: `${profileStrength}%`,
+                                                                                background: 'linear-gradient(90deg, #00e5ff, #a855f7)',
+                                                                                borderRadius: '6px', animation: 'fillBar 1.2s ease both',
+                                                                        }} />
+                                                                </div>
+                                                                <p style={{ fontSize: '12px', color: DS.textMuted, marginTop: '8px' }}>
+                                                                        {profileStrength < 30 && '🚀 Just getting started! Complete more challenges.'}
+                                                                        {profileStrength >= 30 && profileStrength < 60 && '💪 Making progress! Keep up the good work.'}
                                                                         {profileStrength >= 60 && profileStrength < 85 && "🌟 Looking great! You're on fire!"}
                                                                         {profileStrength >= 85 && "🏆 Exceptional profile! You're a master!"}
                                                                 </p>
                                                         </div>
-                                                        <div className="ml-6">
-                                                                <CircularProgress score={profileStrength} size={100} strokeWidth={10} />
+
+                                                        {/* Edit / Save Buttons */}
+                                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                                                {isEditing ? (
+                                                                        <>
+                                                                                <button
+                                                                                        onClick={handleSave}
+                                                                                        style={{
+                                                                                                flex: 1, padding: '11px', borderRadius: '8px', border: 'none',
+                                                                                                background: 'linear-gradient(135deg, #00e5ff, #00b8cc)',
+                                                                                                color: '#000', fontFamily: 'DM Sans, sans-serif',
+                                                                                                fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                                                                                boxShadow: '0 0 20px rgba(0,229,255,.35)',
+                                                                                                transition: 'transform .2s',
+                                                                                        }}
+                                                                                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                                                                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                                                                >
+                                                                                        ✓ Save Changes
+                                                                                </button>
+                                                                                <button
+                                                                                        onClick={() => setIsEditing(false)}
+                                                                                        style={{
+                                                                                                flex: 1, padding: '11px', borderRadius: '8px',
+                                                                                                background: 'transparent', color: DS.textMuted,
+                                                                                                border: '1px solid rgba(255,255,255,.1)',
+                                                                                                fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                                                                                                fontSize: '14px', cursor: 'pointer', transition: 'all .2s',
+                                                                                        }}
+                                                                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,.05)'}
+                                                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                                                >
+                                                                                        Cancel
+                                                                                </button>
+                                                                        </>
+                                                                ) : (
+                                                                        <button
+                                                                                onClick={() => setIsEditing(true)}
+                                                                                style={{
+                                                                                        width: '100%', padding: '11px', borderRadius: '8px',
+                                                                                        background: 'transparent', color: DS.cyan,
+                                                                                        border: '1px solid rgba(0,229,255,.3)',
+                                                                                        fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                                                                                        fontSize: '14px', cursor: 'pointer', transition: 'all .2s',
+                                                                                }}
+                                                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,.08)'}
+                                                                                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                                        >
+                                                                                ✏️ Edit Profile
+                                                                        </button>
+                                                                )}
                                                         </div>
                                                 </div>
-                                        </Card>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                                {/* Left Column - Profile Card */}
-                                                <div className="space-y-6">
-                                                        {/* Profile Card */}
-                                                        <Card className="p-6 animate-slide-up">
-                                                                <div className="text-center">
-                                                                        <div className="relative inline-block mb-4">
-                                                                                <div className="w-24 h-24 bg-gradient-to-br from-primary to-accent-cyan rounded-full flex items-center justify-center text-4xl font-bold text-white">
-                                                                                        {formData.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
-                                                                                </div>
-                                                                                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-success rounded-full flex items-center justify-center border-4 border-bg-card">
-                                                                                        <span className="text-xs font-bold">L{profileData?.level || 1}</span>
-                                                                                </div>
-                                                                        </div>
-                                                                        <h2 className="text-2xl font-bold mb-1">{formData.name || 'User'}</h2>
-                                                                        <p className="text-text-secondary text-sm mb-3">{user?.email}</p>
-                                                                        <Badge variant="default" className="mb-4">
-                                                                                {profileData?.level < 5 ? '🌱 Beginner' : profileData?.level < 10 ? '⚡ Intermediate' : '🏆 Advanced'}
-                                                                        </Badge>
+                                                {/* Stats Grid */}
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                                                                        {/* XP Progress */}
-                                                                        <div className="mt-4 p-3 bg-primary/5 rounded-xl">
-                                                                                <div className="flex items-center justify-between mb-2">
-                                                                                        <span className="text-xs text-text-secondary">XP Progress</span>
-                                                                                        <span className="text-xs font-bold text-primary">{profileData?.xp || 0} / {(profileData?.level || 1) * 100}</span>
-                                                                                </div>
-                                                                                <div className="w-full bg-bg-input rounded-full h-2">
-                                                                                        <div
-                                                                                                className="h-full bg-gradient-to-r from-primary to-accent-cyan rounded-full transition-all duration-500"
-                                                                                                style={{ width: `${((profileData?.xp || 0) / ((profileData?.level || 1) * 100)) * 100}%` }}
-                                                                                        ></div>
-                                                                                </div>
-                                                                        </div>
-
-                                                                        <div className="mt-6 pt-6 border-t border-border space-y-3">
-                                                                                <div className="flex items-center justify-between">
-                                                                                        <span className="text-sm text-text-secondary">Member Since</span>
-                                                                                        <span className="text-sm font-semibold">
-                                                                                                {new Date(profileData?.joined_date || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                                                                                        </span>
-                                                                                </div>
-                                                                                <div className="flex items-center justify-between">
-                                                                                        <span className="text-sm text-text-secondary">Total Attempts</span>
-                                                                                        <span className="text-sm font-semibold text-primary">
-                                                                                                {profileData?.total_attempts || 0}
-                                                                                        </span>
-                                                                                </div>
-                                                                                <div className="flex items-center justify-between">
-                                                                                        <span className="text-sm text-text-secondary">Avg Score</span>
-                                                                                        <span className="text-sm font-semibold text-success">
-                                                                                                {profileData?.average_score?.toFixed(1) || '0'}/100
-                                                                                        </span>
-                                                                                </div>
-                                                                                <div className="flex items-center justify-between">
-                                                                                        <span className="text-sm text-text-secondary">🔥 Streak</span>
-                                                                                        <span className="text-sm font-semibold text-warning">
-                                                                                                {profileData?.streak || 0} days
-                                                                                        </span>
-                                                                                </div>
-                                                                        </div>
-                                                                </div>
-                                                        </Card>
-
-                                                        {/* Quick Stats */}
-                                                        <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                                                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                                                        <span className="text-xl">⚡</span>
-                                                                        Quick Stats
-                                                                </h3>
-                                                                <div className="space-y-3">
-                                                                        <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg">
-                                                                                <span className="text-sm font-medium">Best Score</span>
-                                                                                <span className="text-lg font-bold text-primary">
-                                                                                        {Math.max(...(profileData?.recent_scores || [0]))}
-                                                                                </span>
-                                                                        </div>
-                                                                        <div className="flex items-center justify-between p-3 bg-success/5 rounded-lg">
-                                                                                <span className="text-sm font-medium">Completion Rate</span>
-                                                                                <span className="text-lg font-bold text-success">
-                                                                                        {profileData?.total_attempts > 0 ? '100%' : '0%'}
-                                                                                </span>
-                                                                        </div>
-                                                                        <div className="flex items-center justify-between p-3 bg-accent-cyan/5 rounded-lg">
-                                                                                <span className="text-sm font-medium">Active Days</span>
-                                                                                <span className="text-lg font-bold text-accent-cyan">
-                                                                                        {profileData?.active_days || Math.max(profileData?.streak || 0, profileData?.total_attempts || 0)}
-                                                                                </span>
-                                                                        </div>
-                                                                </div>
-                                                        </Card>
-                                                </div>
-
-                                                {/* Right Column - Details & Stats */}
-                                                <div className="lg:col-span-2 space-y-6">
-                                                        {/* Personal Info */}
-                                                        <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                                                                <div className="flex items-center justify-between mb-6">
-                                                                        <h3 className="text-xl font-bold flex items-center gap-2">
-                                                                                <span className="text-2xl">👤</span>
-                                                                                Personal Information
-                                                                        </h3>
-                                                                        <Button
-                                                                                onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-                                                                                variant="secondary"
-                                                                                className="text-sm"
+                                                        {/* Top 4 stat cards */}
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                                                                {[
+                                                                        { icon: '🏆', label: 'Total Challenges', value: profileData?.total_attempts || 0, color: DS.cyan },
+                                                                        { icon: '📈', label: 'Average Score', value: (profileData?.average_score || 0).toFixed(1), color: '#22c55e' },
+                                                                        { icon: '⚡', label: 'Current Streak', value: profileData?.streak || 0, color: DS.gold },
+                                                                        { icon: '💎', label: 'Total XP', value: profileData?.xp || 0, color: DS.purple2 },
+                                                                ].map((stat, i) => (
+                                                                        <div key={stat.label} style={{
+                                                                                ...cardStyle, padding: '20px',
+                                                                                animation: `slideUp 0.5s ${i * 0.08}s ease both`,
+                                                                                transition: 'all 0.3s ease',
+                                                                        }}
+                                                                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 60px rgba(0,229,255,.1)'; }}
+                                                                                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                                                                         >
-                                                                                {isEditing ? '💾 Save Changes' : '✏️ Edit Profile'}
-                                                                        </Button>
-                                                                </div>
+                                                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                                                        <span style={{ fontSize: '24px' }}>{stat.icon}</span>
+                                                                                        <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '28px', fontWeight: 900, color: stat.color }}>
+                                                                                                {stat.value}
+                                                                                        </span>
+                                                                                </div>
+                                                                                <p style={{ fontSize: '12px', color: DS.textMuted, textTransform: 'uppercase', letterSpacing: '1px', fontFamily: 'Orbitron, sans-serif' }}>
+                                                                                        {stat.label}
+                                                                                </p>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
 
-                                                                <div className="space-y-4">
+                                                        {/* XP Progress to next level */}
+                                                        <div style={{ ...cardStyle, padding: '20px' }}>
+                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                                                        <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', color: DS.cyan, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                                                                                XP Progress — Level {profileData?.level || 1}
+                                                                        </p>
+                                                                        <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, ...gradientText }}>
+                                                                                {profileData?.xp || 0} XP
+                                                                        </span>
+                                                                </div>
+                                                                <div style={{ height: '8px', background: 'rgba(255,255,255,.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                                                                        <div style={{
+                                                                                height: '100%',
+                                                                                width: `${Math.min(((profileData?.xp || 0) % 1000) / 10, 100)}%`,
+                                                                                background: 'linear-gradient(90deg, #00e5ff, #a855f7)',
+                                                                                borderRadius: '6px', animation: 'fillBar 1.5s ease both',
+                                                                        }} />
+                                                                </div>
+                                                                <p style={{ fontSize: '12px', color: DS.textMuted, marginTop: '8px' }}>
+                                                                        {1000 - ((profileData?.xp || 0) % 1000)} XP to next level
+                                                                </p>
+                                                        </div>
+
+                                                        {/* Joined date */}
+                                                        <div style={{ ...cardStyle, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                        <span style={{ fontSize: '20px' }}>📅</span>
                                                                         <div>
-                                                                                <label className="block text-sm font-medium mb-2">Display Name</label>
-                                                                                <input
-                                                                                        type="text"
-                                                                                        className="input-field"
-                                                                                        placeholder="Enter your name"
-                                                                                        value={formData.name}
-                                                                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                                                        disabled={!isEditing}
-                                                                                />
-                                                                        </div>
-
-                                                                        <div>
-                                                                                <label className="block text-sm font-medium mb-2">Email</label>
-                                                                                <input
-                                                                                        type="email"
-                                                                                        className="input-field opacity-60 cursor-not-allowed"
-                                                                                        value={user?.email || ''}
-                                                                                        disabled
-                                                                                />
-                                                                                <p className="text-xs text-text-secondary mt-1">Email cannot be changed</p>
-                                                                        </div>
-
-                                                                        <div>
-                                                                                <label className="block text-sm font-medium mb-2">Bio</label>
-                                                                                <textarea
-                                                                                        className="input-field min-h-[100px] resize-none"
-                                                                                        placeholder="Aspire to inspire before you expire."
-                                                                                        value={formData.bio}
-                                                                                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                                                                                        disabled={!isEditing}
-                                                                                />
+                                                                                <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', color: DS.textMuted, letterSpacing: '1px', textTransform: 'uppercase' }}>Member Since</p>
+                                                                                <p style={{ fontSize: '14px', color: DS.textPrimary, fontWeight: 600 }}>
+                                                                                        {profileData?.joined_date ? new Date(profileData.joined_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}
+                                                                                </p>
                                                                         </div>
                                                                 </div>
-                                                        </Card>
-
-                                                        {/* Performance Charts */}
-                                                        {recentPerformanceData.length > 0 && (
-                                                                <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-                                                                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                                                <span className="text-2xl">📈</span>
-                                                                                Recent Performance
-                                                                        </h3>
-                                                                        <ResponsiveContainer width="100%" height={250}>
-                                                                                <AreaChart data={recentPerformanceData}>
-                                                                                        <defs>
-                                                                                                <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                                                        <stop offset="0%" stopColor="#6366f1" stopOpacity={0.8} />
-                                                                                                        <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.1} />
-                                                                                                </linearGradient>
-                                                                                        </defs>
-                                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#2d2d44" />
-                                                                                        <XAxis dataKey="challenge" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                                                                        <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0, 100]} />
-                                                                                        <Tooltip
-                                                                                                contentStyle={{
-                                                                                                        backgroundColor: '#1a1a2e',
-                                                                                                        border: '2px solid #6366f1',
-                                                                                                        borderRadius: '12px',
-                                                                                                }}
-                                                                                        />
-                                                                                        <Area
-                                                                                                type="monotone"
-                                                                                                dataKey="score"
-                                                                                                stroke="#6366f1"
-                                                                                                fill="url(#scoreGradient)"
-                                                                                                strokeWidth={3}
-                                                                                        />
-                                                                                </AreaChart>
-                                                                        </ResponsiveContainer>
-                                                                </Card>
-                                                        )}
-
-                                                        {/* Skill Radar */}
-                                                        {skillRadarData.length > 0 && (
-                                                                <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-                                                                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                                                <span className="text-2xl">🎯</span>
-                                                                                Skill Breakdown
-                                                                        </h3>
-                                                                        <ResponsiveContainer width="100%" height={300}>
-                                                                                <RadarChart data={skillRadarData}>
-                                                                                        <PolarGrid stroke="#2d2d44" />
-                                                                                        <PolarAngleAxis dataKey="skill" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                                                                                        <PolarRadiusAxis domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                                                                                        <Radar
-                                                                                                name="Skill Level"
-                                                                                                dataKey="level"
-                                                                                                stroke="#06b6d4"
-                                                                                                fill="#06b6d4"
-                                                                                                fillOpacity={0.6}
-                                                                                        />
-                                                                                        <Tooltip
-                                                                                                contentStyle={{
-                                                                                                        backgroundColor: '#1a1a2e',
-                                                                                                        border: '2px solid #06b6d4',
-                                                                                                        borderRadius: '12px',
-                                                                                                }}
-                                                                                        />
-                                                                                </RadarChart>
-                                                                        </ResponsiveContainer>
-                                                                </Card>
-                                                        )}
-
-                                                        {/* Statistics */}
-                                                        <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.5s' }}>
-                                                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                                        <span className="text-2xl">📊</span>
-                                                                        Statistics
-                                                                </h3>
-                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                                                        <div className="text-center p-4 bg-primary/5 rounded-xl border border-primary/20 hover:scale-105 transition-transform">
-                                                                                <div className="text-4xl font-extrabold text-primary mb-2">
-                                                                                        {profileData?.total_attempts || 0}
-                                                                                </div>
-                                                                                <div className="text-sm text-text-secondary">Total Challenges</div>
-                                                                        </div>
-                                                                        <div className="text-center p-4 bg-success/5 rounded-xl border border-success/20 hover:scale-105 transition-transform">
-                                                                                <div className="text-4xl font-extrabold text-success mb-2">
-                                                                                        {profileData?.average_score?.toFixed(1) || '0'}
-                                                                                </div>
-                                                                                <div className="text-sm text-text-secondary">Average Score</div>
-                                                                        </div>
-                                                                        <div className="text-center p-4 bg-warning/5 rounded-xl border border-warning/20 hover:scale-105 transition-transform">
-                                                                                <div className="text-4xl font-extrabold text-warning mb-2">
-                                                                                        {profileData?.streak || 0}
-                                                                                </div>
-                                                                                <div className="text-sm text-text-secondary">Day Streak</div>
-                                                                        </div>
-                                                                        <div className="text-center p-4 bg-accent-cyan/5 rounded-xl border border-accent-cyan/20 hover:scale-105 transition-transform">
-                                                                                <div className="text-4xl font-extrabold text-accent-cyan mb-2">
-                                                                                        {profileData?.badges?.length || 0}
-                                                                                </div>
-                                                                                <div className="text-sm text-text-secondary">Badges Earned</div>
-                                                                        </div>
-                                                                </div>
-                                                        </Card>
-
-                                                        {/* Achievements */}
-                                                        <Card className="p-6 animate-slide-up" style={{ animationDelay: '0.6s' }}>
-                                                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                                        <span className="text-2xl">🏆</span>
-                                                                        Achievements & Badges
-                                                                </h3>
-                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                                        {profileData?.badges?.length > 0 ? (
-                                                                                profileData.badges.map((badge, index) => (
-                                                                                        <div
-                                                                                                key={index}
-                                                                                                className="group p-4 bg-gradient-to-br from-warning/10 to-accent-pink/10 border-2 border-warning/30 rounded-xl text-center hover:scale-110 hover:border-warning transition-all cursor-pointer"
-                                                                                        >
-                                                                                                <div className="text-4xl mb-2 group-hover:scale-125 transition-transform">{badge.icon || '🏆'}</div>
-                                                                                                <h4 className="text-sm font-bold mb-1">{badge.name}</h4>
-                                                                                                <p className="text-xs text-text-secondary">{badge.description}</p>
-                                                                                        </div>
-                                                                                ))
-                                                                        ) : (
-                                                                                <>
-                                                                                        {/* Placeholder badges */}
-                                                                                        {[
-                                                                                                { icon: '🎯', name: 'First Attempt', desc: 'Complete your first challenge', locked: true },
-                                                                                                { icon: '🌟', name: 'Clarity Champion', desc: 'Score 90+ on clarity', locked: true },
-                                                                                                { icon: '📝', name: 'Structure Master', desc: 'Use all prompt components', locked: true },
-                                                                                                { icon: '💪', name: 'Consistent', desc: 'Maintain 7-day streak', locked: true },
-                                                                                                { icon: '🏆', name: 'Expert Promper', desc: 'Complete 10 challenges', locked: true },
-                                                                                                { icon: '⚡', name: 'Prompt Pro', desc: 'Average score above 85', locked: true }
-                                                                                        ].map((badge, idx) => (
-                                                                                                <div
-                                                                                                        key={idx}
-                                                                                                        className="p-4 bg-bg-input/50 border-2 border-dashed border-border rounded-xl text-center opacity-50 hover:opacity-75 transition-opacity"
-                                                                                                >
-                                                                                                        <div className="text-3xl mb-2 grayscale">{badge.icon}</div>
-                                                                                                        <h4 className="text-sm font-semibold mb-1">{badge.name}</h4>
-                                                                                                        <p className="text-xs text-text-secondary">{badge.desc}</p>
-                                                                                                        <p className="text-xs text-warning mt-2">🔒 Locked</p>
-                                                                                                </div>
-                                                                                        ))}
-                                                                                </>
-                                                                        )}
-                                                                </div>
-                                                        </Card>
+                                                                <span style={{
+                                                                        padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,
+                                                                        background: 'rgba(0,229,255,.08)', color: DS.cyan, border: '1px solid rgba(0,229,255,.2)',
+                                                                }}>
+                                                                        Active
+                                                                </span>
+                                                        </div>
                                                 </div>
                                         </div>
+
+                                        {/* Row 2 — Performance Chart + Category Pie */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px', animation: 'slideUp 0.5s 0.2s ease both' }}>
+
+                                                {/* Recent Performance */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff',
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px'
+                                                        }}>
+                                                                Recent Performance
+                                                        </h3>
+                                                        {recentPerformanceData.length > 0 ? (
+                                                                <ResponsiveContainer width="100%" height={220}>
+                                                                        <AreaChart data={recentPerformanceData}>
+                                                                                <defs>
+                                                                                        <linearGradient id="perfGrad" x1="0" y1="0" x2="0" y2="1">
+                                                                                                <stop offset="5%" stopColor="#00e5ff" stopOpacity={0.3} />
+                                                                                                <stop offset="95%" stopColor="#00e5ff" stopOpacity={0} />
+                                                                                        </linearGradient>
+                                                                                </defs>
+                                                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,229,255,.06)" />
+                                                                                <XAxis dataKey="challenge" tick={{ fill: DS.textMuted, fontSize: 11 }} />
+                                                                                <YAxis domain={[0, 100]} tick={{ fill: DS.textMuted, fontSize: 11 }} />
+                                                                                <Tooltip content={<CustomTooltip />} />
+                                                                                <Area type="monotone" dataKey="score" stroke="#00e5ff" strokeWidth={2}
+                                                                                        fill="url(#perfGrad)" dot={{ fill: '#00e5ff', r: 4 }} />
+                                                                        </AreaChart>
+                                                                </ResponsiveContainer>
+                                                        ) : (
+                                                                <div style={{ height: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                                                        <p style={{ fontSize: '32px', marginBottom: '8px' }}>📊</p>
+                                                                        <p style={{ color: DS.textMuted, fontSize: '14px' }}>Complete challenges to see performance trends</p>
+                                                                </div>
+                                                        )}
+                                                </div>
+
+                                                {/* Category Distribution */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff',
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px'
+                                                        }}>
+                                                                Category Distribution
+                                                        </h3>
+                                                        {categoryData.some(c => c.completed > 0) ? (
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                                                        <ResponsiveContainer width="50%" height={200}>
+                                                                                <PieChart>
+                                                                                        <Pie data={categoryData} dataKey="completed" nameKey="name"
+                                                                                                cx="50%" cy="50%" outerRadius={80} strokeWidth={0}>
+                                                                                                {categoryData.map((_, index) => (
+                                                                                                        <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                                                                                ))}
+                                                                                        </Pie>
+                                                                                        <Tooltip content={<CustomTooltip />} />
+                                                                                </PieChart>
+                                                                        </ResponsiveContainer>
+                                                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                                                {categoryData.map((cat, i) => (
+                                                                                        <div key={cat.name} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }} />
+                                                                                                <div style={{ flex: 1 }}>
+                                                                                                        <p style={{ fontSize: '12px', color: DS.textPrimary, marginBottom: '1px' }}>{cat.name}</p>
+                                                                                                        <p style={{ fontSize: '11px', color: DS.textMuted }}>{cat.completed} completed</p>
+                                                                                                </div>
+                                                                                        </div>
+                                                                                ))}
+                                                                        </div>
+                                                                </div>
+                                                        ) : (
+                                                                <div style={{ height: '200px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                                                        <p style={{ fontSize: '32px', marginBottom: '8px' }}>🎯</p>
+                                                                        <p style={{ color: DS.textMuted, fontSize: '14px' }}>No category data yet</p>
+                                                                </div>
+                                                        )}
+                                                </div>
+                                        </div>
+
+                                        {/* Row 3 — Skill Radar + Skill Level Bars */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px', animation: 'slideUp 0.5s 0.3s ease both' }}>
+
+                                                {/* Skill Radar */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff',
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px'
+                                                        }}>
+                                                                Skill Radar
+                                                        </h3>
+                                                        {skillRadarData.length > 0 ? (
+                                                                <ResponsiveContainer width="100%" height={260}>
+                                                                        <RadarChart data={skillRadarData}>
+                                                                                <PolarGrid stroke="rgba(0,229,255,.1)" />
+                                                                                <PolarAngleAxis dataKey="skill" tick={{ fill: DS.textMuted, fontSize: 11, fontFamily: 'DM Sans' }} />
+                                                                                <PolarRadiusAxis domain={[0, 100]} tick={{ fill: DS.textMuted, fontSize: 10 }} />
+                                                                                <Radar name="Level" dataKey="level" stroke="#00e5ff"
+                                                                                        fill="rgba(0,229,255,0.15)" fillOpacity={0.6} />
+                                                                        </RadarChart>
+                                                                </ResponsiveContainer>
+                                                        ) : (
+                                                                <div style={{ height: '260px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                                                        <p style={{ fontSize: '32px', marginBottom: '8px' }}>🕸️</p>
+                                                                        <p style={{ color: DS.textMuted, fontSize: '14px' }}>Complete challenges to build your radar</p>
+                                                                </div>
+                                                        )}
+                                                </div>
+
+                                                {/* Skill Level Bars with Circular Progress */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff',
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px'
+                                                        }}>
+                                                                Skill Breakdown
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                                                {skillRadarData.map(({ skill, level }) => (
+                                                                        <div key={skill}>
+                                                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                                                                        <span style={{ fontSize: '13px', color: DS.textMuted }}>{skill}</span>
+                                                                                        <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, ...gradientText }}>
+                                                                                                {level}
+                                                                                        </span>
+                                                                                </div>
+                                                                                <div style={{ height: '6px', background: 'rgba(255,255,255,.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                                                                                        <div style={{
+                                                                                                height: '100%', width: `${level}%`,
+                                                                                                background: 'linear-gradient(90deg, #00e5ff, #a855f7)',
+                                                                                                borderRadius: '6px', animation: 'fillBar 1s ease both',
+                                                                                                transition: 'width .8s ease',
+                                                                                        }} />
+                                                                                </div>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
+                                        </div>
+
+                                        {/* Row 4 — Badges */}
+                                        <div style={{ ...cardStyle, animation: 'slideUp 0.5s 0.4s ease both' }}>
+                                                <h3 style={{
+                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff',
+                                                        letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px',
+                                                        display: 'flex', alignItems: 'center', gap: '10px'
+                                                }}>
+                                                        🏅 Badges
+                                                        <span style={{
+                                                                padding: '2px 10px', borderRadius: '999px', fontSize: '11px',
+                                                                background: 'rgba(0,229,255,.08)', color: DS.cyan, border: '1px solid rgba(0,229,255,.2)',
+                                                        }}>
+                                                                {profileData?.badges?.length || 0} earned
+                                                        </span>
+                                                </h3>
+
+                                                {/* Earned Badges */}
+                                                {profileData?.badges && profileData.badges.length > 0 ? (
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px', marginBottom: '24px' }}>
+                                                                {profileData.badges.map((badge, index) => (
+                                                                        <div key={index} style={{
+                                                                                padding: '16px', borderRadius: '12px',
+                                                                                background: 'rgba(0,229,255,.05)',
+                                                                                border: '1px solid rgba(0,229,255,.2)',
+                                                                                textAlign: 'center', transition: 'all 0.3s ease',
+                                                                        }}
+                                                                                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'rgba(0,229,255,.4)'; }}
+                                                                                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(0,229,255,.2)'; }}
+                                                                        >
+                                                                                <div style={{ fontSize: '32px', marginBottom: '8px' }}>{badge.icon || '🏆'}</div>
+                                                                                <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', fontWeight: 700, color: DS.cyan, marginBottom: '4px' }}>
+                                                                                        {badge.name}
+                                                                                </p>
+                                                                                <p style={{ fontSize: '11px', color: DS.textMuted, lineHeight: 1.5 }}>{badge.description}</p>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                ) : (
+                                                        <div style={{ textAlign: 'center', padding: '32px 0', marginBottom: '24px' }}>
+                                                                <p style={{ fontSize: '32px', marginBottom: '8px' }}>🎯</p>
+                                                                <p style={{ color: DS.textMuted, fontSize: '14px' }}>Complete challenges to earn badges</p>
+                                                        </div>
+                                                )}
+
+                                                {/* Locked Badges */}
+                                                <div>
+                                                        <p style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '11px', color: DS.textMuted,
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px'
+                                                        }}>
+                                                                🔒 Locked Badges
+                                                        </p>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
+                                                                {[
+                                                                        { icon: '🔥', name: 'Streak Master', desc: 'Maintain a 7-day streak' },
+                                                                        { icon: '💯', name: 'Perfect Score', desc: 'Score 100 on any challenge' },
+                                                                        { icon: '🚀', name: 'Speed Demon', desc: 'Complete 10 challenges in a day' },
+                                                                        { icon: '🧠', name: 'Prompt Wizard', desc: 'Score 90+ on 5 consecutive challenges' },
+                                                                ].map((badge, index) => (
+                                                                        <div key={index} style={{
+                                                                                padding: '16px', borderRadius: '12px',
+                                                                                background: 'rgba(0,0,0,0.3)',
+                                                                                border: '1px solid rgba(255,255,255,.05)',
+                                                                                textAlign: 'center', opacity: 0.5,
+                                                                        }}>
+                                                                                <div style={{ fontSize: '32px', marginBottom: '8px', filter: 'grayscale(1)' }}>{badge.icon}</div>
+                                                                                <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '12px', fontWeight: 700, color: DS.textMuted, marginBottom: '4px' }}>
+                                                                                        {badge.name}
+                                                                                </p>
+                                                                                <p style={{ fontSize: '11px', color: DS.textMuted, lineHeight: 1.5 }}>{badge.desc}</p>
+                                                                                <p style={{ fontSize: '10px', color: DS.textMuted, marginTop: '6px' }}>🔒 Locked</p>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
+                                        </div>
+
                                 </div>
                         </main>
 
@@ -529,7 +708,7 @@ export default function Profile() {
                                 message={toast.message}
                                 type={toast.type}
                                 isVisible={toast.visible}
-                                onClose={() => setToast((t) => ({ ...t, visible: false }))}
+                                onClose={() => setToast(t => ({ ...t, visible: false }))}
                         />
                 </div>
         );

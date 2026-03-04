@@ -1,651 +1,702 @@
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Radar, RadarChart as RechartsRadar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, AreaChart, Area, ComposedChart } from 'recharts';
+import {
+        Radar, RadarChart as RechartsRadar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+        ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+        LineChart, Line, AreaChart, Area, ComposedChart,
+} from 'recharts';
 import Sidebar from '../components/Sidebar';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
+
+const DS = {
+        bg: '#040610',
+        surface: 'rgba(10, 15, 30, 0.6)',
+        cyan: '#00e5ff',
+        cyanDim: '#00b8cc',
+        purple: '#7c3aed',
+        purple2: '#a855f7',
+        gold: '#f59e0b',
+        textPrimary: '#e2e8f0',
+        textMuted: '#64748b',
+        border: 'rgba(0, 229, 255, 0.12)',
+};
+
+const gradientText = {
+        background: 'linear-gradient(135deg, #00e5ff 0%, #a855f7 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+};
+
+const cardStyle = {
+        background: 'rgba(10, 15, 30, 0.6)',
+        border: '1px solid rgba(0, 229, 255, 0.12)',
+        borderRadius: '16px',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        padding: '24px',
+};
+
+const customTooltipStyle = {
+        backgroundColor: 'rgba(4,6,16,0.95)',
+        border: '1px solid rgba(0,229,255,0.2)',
+        borderRadius: '8px',
+        color: '#e2e8f0',
+        fontFamily: 'DM Sans, sans-serif',
+        fontSize: '13px',
+        padding: '10px 14px',
+};
+
+const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+                return (
+                        <div style={customTooltipStyle}>
+                                <p style={{ color: DS.cyan, fontFamily: 'Orbitron, sans-serif', fontSize: '11px', marginBottom: '4px' }}>{label}</p>
+                                <p style={{ color: '#e2e8f0' }}>{payload[0]?.value}</p>
+                        </div>
+                );
+        }
+        return null;
+};
 
 export default function EvaluationResult() {
         const location = useLocation();
         const navigate = useNavigate();
         const { evaluation, problem, userPrompt } = location.state || {};
 
+        useEffect(() => {
+                const style = document.createElement('style');
+                style.id = 'pf-eval-fonts';
+                style.textContent = `
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap');
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(32px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fillBar { from { width: 0; } }
+      @keyframes glowPulse {
+        0%, 100% { box-shadow: 0 0 10px rgba(0,229,255,.3); }
+        50%       { box-shadow: 0 0 30px rgba(0,229,255,.6); }
+      }
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: #040610; }
+      ::-webkit-scrollbar-thumb { background: #00b8cc; border-radius: 4px; }
+    `;
+                if (!document.getElementById('pf-eval-fonts')) {
+                        document.head.appendChild(style);
+                }
+        }, []);
+
         if (!evaluation) {
                 return (
-                        <div className="flex min-h-screen">
+                        <div style={{
+                                display: 'flex', minHeight: '100vh', background: DS.bg,
+                                backgroundImage: 'linear-gradient(rgba(0,229,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,.04) 1px, transparent 1px)',
+                                backgroundSize: '60px 60px', fontFamily: 'DM Sans, sans-serif',
+                        }}>
                                 <Sidebar />
-                                <main className="flex-1 ml-64 p-8 flex items-center justify-center">
-                                        <Card className="p-8 text-center max-w-md">
-                                                <div className="text-6xl mb-4">📊</div>
-                                                <h2 className="text-2xl font-bold mb-2">No Evaluation Data</h2>
-                                                <p className="text-text-secondary mb-6">Please complete a challenge first.</p>
-                                                <Button onClick={() => navigate('/problem-mode')}>Start Challenge</Button>
-                                        </Card>
+                                <main style={{ flex: 1, marginLeft: '256px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div style={{ ...cardStyle, textAlign: 'center', maxWidth: '420px', padding: '48px 32px', animation: 'slideUp 0.7s ease both' }}>
+                                                <div style={{ fontSize: '64px', marginBottom: '20px' }}>📊</div>
+                                                <h2 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '22px', fontWeight: 700, color: '#fff', marginBottom: '12px' }}>
+                                                        No Evaluation Data
+                                                </h2>
+                                                <p style={{ color: DS.textMuted, fontSize: '14px', marginBottom: '28px', lineHeight: 1.7 }}>
+                                                        Please complete a challenge first.
+                                                </p>
+                                                <button
+                                                        onClick={() => navigate('/problem-mode')}
+                                                        style={{
+                                                                padding: '12px 28px', borderRadius: '8px', border: 'none',
+                                                                background: 'linear-gradient(135deg, #00e5ff, #00b8cc)',
+                                                                color: '#000', fontFamily: 'DM Sans, sans-serif',
+                                                                fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+                                                                boxShadow: '0 0 20px rgba(0,229,255,.35)',
+                                                        }}
+                                                >
+                                                        Start a Challenge
+                                                </button>
+                                        </div>
                                 </main>
                         </div>
                 );
         }
 
+        const scoreData = [
+                { label: 'Clarity', value: evaluation.clarity_score, color: '#00e5ff' },
+                { label: 'Specificity', value: evaluation.specificity_score, color: '#a855f7' },
+                { label: 'Effectiveness', value: evaluation.effectiveness_score, color: '#22c55e' },
+                { label: 'Best Practices', value: evaluation.best_practices_score, color: '#f59e0b' },
+                { label: 'Efficiency', value: evaluation.efficiency_score, color: '#00b8cc' },
+                { label: 'Safety', value: evaluation.safety_score, color: '#ec4899' },
+                { label: 'Cognitive Load', value: evaluation.cognitive_load_score, color: '#818cf8' },
+                { label: 'Alignment', value: evaluation.alignment_score, color: '#34d399' },
+        ];
+
+        const radarData = scoreData.map(s => ({ subject: s.label, score: s.value, fullMark: 100 }));
+
+        const barData = scoreData.map(s => ({ name: s.label, score: s.value }));
+
+        const componentChecks = [
+                { key: 'has_role_definition', label: 'Role Definition', desc: 'Assigns an expert persona to the model' },
+                { key: 'has_clear_task', label: 'Clear Task', desc: 'Core objective is unambiguous' },
+                { key: 'has_output_format', label: 'Output Format', desc: 'Desired output structure is specified' },
+                { key: 'has_constraints', label: 'Constraints', desc: 'Limitations or boundaries are defined' },
+                { key: 'has_examples', label: 'Examples', desc: 'Input/output examples are provided' },
+                { key: 'has_step_by_step', label: 'Step-by-Step', desc: 'Chain-of-thought reasoning is prompted' },
+                { key: 'has_negative_constraints', label: 'Negative Constraints', desc: "What the model should NOT do is stated" },
+                { key: 'has_audience_definition', label: 'Audience Definition', desc: 'Target audience or context is stated' },
+                { key: 'has_success_criteria', label: 'Success Criteria', desc: 'Clear definition of a good answer' },
+        ];
+
+        const promptPatternInfo = {
+                'Zero-shot directive': { color: DS.cyan, icon: '⚡' },
+                'Few-shot exemplar': { color: DS.gold, icon: '📚' },
+                'Chain-of-thought': { color: '#22c55e', icon: '🔗' },
+                'Role-play': { color: DS.purple2, icon: '🎭' },
+                'Structured template': { color: '#ec4899', icon: '📋' },
+                'Hybrid': { color: '#34d399', icon: '🔀' },
+        };
+
+        const currentPattern = promptPatternInfo[evaluation.prompt_pattern] || { color: DS.cyan, icon: '🧠' };
+
+        const getRiskStyle = (risk) => {
+                if (risk === 'LOW') return { color: '#22c55e', bg: 'rgba(34,197,94,.12)', border: 'rgba(34,197,94,.25)' };
+                if (risk === 'HIGH') return { color: '#ef4444', bg: 'rgba(239,68,68,.12)', border: 'rgba(239,68,68,.25)' };
+                return { color: DS.gold, bg: 'rgba(245,158,11,.12)', border: 'rgba(245,158,11,.25)' };
+        };
+
+        const riskStyle = getRiskStyle(evaluation.hallucination_risk);
+
         const getScoreColor = (score) => {
-                if (score >= 90) return 'from-emerald-500 to-green-400';
-                if (score >= 80) return 'from-success to-green-400';
-                if (score >= 70) return 'from-blue-500 to-cyan-400';
-                if (score >= 60) return 'from-warning to-yellow-400';
-                return 'from-danger to-red-400';
-        };
-
-        const getScoreColorSolid = (score) => {
-                if (score >= 90) return 'text-emerald-500';
-                if (score >= 80) return 'text-success';
-                if (score >= 70) return 'text-blue-500';
-                if (score >= 60) return 'text-warning';
-                return 'text-danger';
-        };
-
-        const getScoreGrade = (score) => {
-                if (score >= 90) return { text: 'Exceptional', emoji: '🎉', desc: 'Outstanding performance!' };
-                if (score >= 80) return { text: 'Excellent', emoji: '🌟', desc: 'Great work!' };
-                if (score >= 70) return { text: 'Good', emoji: '👍', desc: 'Nice job!' };
-                if (score >= 60) return { text: 'Fair', emoji: '😊', desc: 'Keep improving!' };
-                return { text: 'Needs Work', emoji: '💪', desc: 'Practice makes perfect!' };
-        };
-
-        const grade = getScoreGrade(evaluation.overall_score);
-
-        // Enhanced Radar Data with more metrics
-        const radarData = [
-                { metric: 'Clarity', score: evaluation.clarity_score || 0, fullMark: 100 },
-                { metric: 'Specificity', score: evaluation.specificity_score || 0, fullMark: 100 },
-                { metric: 'Effectiveness', score: evaluation.effectiveness_score || 0, fullMark: 100 },
-                { metric: 'Best Practices', score: evaluation.best_practices_score || 0, fullMark: 100 },
-                { metric: 'Efficiency', score: evaluation.efficiency_score || 0, fullMark: 100 },
-                { metric: 'Safety', score: evaluation.safety_score || 0, fullMark: 100 },
-                { metric: 'Grammar', score: evaluation.grammar_score || 80, fullMark: 100 },
-                { metric: 'Readability', score: evaluation.readability_score || 75, fullMark: 100 },
-        ];
-
-        // Comprehensive metrics breakdown
-        const detailedMetrics = [
-                {
-                        category: 'Core Quality',
-                        metrics: [
-                                { name: 'Clarity', score: evaluation.clarity_score || 0, icon: '💎', color: 'primary' },
-                                { name: 'Specificity', score: evaluation.specificity_score || 0, icon: '🎯', color: 'accent-cyan' },
-                                { name: 'Effectiveness', score: evaluation.effectiveness_score || 0, icon: '⚡', color: 'success' },
-                        ]
-                },
-                {
-                        category: 'Best Practices',
-                        metrics: [
-                                { name: 'Structure', score: evaluation.best_practices_score || 0, icon: '🏗️', color: 'warning' },
-                                { name: 'Efficiency', score: evaluation.efficiency_score || 0, icon: '🚀', color: 'accent-pink' },
-                                { name: 'Safety', score: evaluation.safety_score || 0, icon: '🛡️', color: 'primary' },
-                        ]
-                },
-                {
-                        category: 'Language Quality',
-                        metrics: [
-                                { name: 'Grammar', score: evaluation.grammar_score || 80, icon: '📝', color: 'success' },
-                                { name: 'Readability', score: evaluation.readability_score || 75, icon: '👁️', color: 'accent-cyan' },
-                                { name: 'Ambiguity', score: 100 - (evaluation.ambiguity_score || 20), icon: '🔍', color: 'warning' },
-                        ]
-                }
-        ];
-
-        // Component Checklist with descriptions
-        const components = [
-                { name: 'Role Definition', present: evaluation.has_role_definition, icon: '👤', desc: 'Defines AI role and persona' },
-                { name: 'Clear Task', present: evaluation.has_clear_task, icon: '🎯', desc: 'Specifies exact objective' },
-                { name: 'Output Format', present: evaluation.has_output_format, icon: '📄', desc: 'Defines response structure' },
-                { name: 'Constraints', present: evaluation.has_constraints, icon: '⚠️', desc: 'Sets boundaries and limits' },
-                { name: 'Examples', present: evaluation.has_examples, icon: '💡', desc: 'Provides sample inputs/outputs' },
-                { name: 'Step-by-Step', present: evaluation.has_step_by_step, icon: '📋', desc: 'Breaks down process' },
-        ];
-
-        // Token analysis data
-        const tokenData = [
-                { name: 'Useful', value: evaluation.useful_tokens_percentage || 70, color: '#10b981' },
-                { name: 'Redundant', value: evaluation.redundant_tokens_percentage || 30, color: '#ef4444' },
-        ];
-
-        // Circular Progress Component
-        const CircularProgress = ({ score, size = 120, strokeWidth = 8 }) => {
-                const radius = (size - strokeWidth) / 2;
-                const circumference = radius * 2 * Math.PI;
-                const offset = circumference - (score / 100) * circumference;
-
-                return (
-                        <svg width={size} height={size} className="transform -rotate-90">
-                                <circle
-                                        cx={size / 2}
-                                        cy={size / 2}
-                                        r={radius}
-                                        stroke="currentColor"
-                                        strokeWidth={strokeWidth}
-                                        fill="none"
-                                        className="text-bg-input"
-                                />
-                                <circle
-                                        cx={size / 2}
-                                        cy={size / 2}
-                                        r={radius}
-                                        stroke="currentColor"
-                                        strokeWidth={strokeWidth}
-                                        fill="none"
-                                        strokeDasharray={circumference}
-                                        strokeDashoffset={offset}
-                                        className={`transition-all duration-1000 ease-out ${getScoreColorSolid(score)}`}
-                                        strokeLinecap="round"
-                                />
-                        </svg>
-                );
+                if (score >= 80) return '#22c55e';
+                if (score >= 60) return DS.gold;
+                return '#ef4444';
         };
 
         return (
-                <div className="flex min-h-screen">
+                <div style={{
+                        display: 'flex', minHeight: '100vh', background: DS.bg,
+                        backgroundImage: 'linear-gradient(rgba(0,229,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,.04) 1px, transparent 1px)',
+                        backgroundSize: '60px 60px', fontFamily: 'DM Sans, sans-serif',
+                }}>
                         <Sidebar />
 
-                        <main className="flex-1 ml-64 p-8 bg-gradient-to-br from-bg-dark via-bg-card to-bg-dark">
-                                <div className="max-w-7xl mx-auto">
-                                        {/* Animated Header */}
-                                        <header className="text-center mb-12 animate-fade-in">
-                                                <div className="relative inline-block mb-6">
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent-cyan to-accent-pink opacity-20 blur-3xl animate-pulse"></div>
-                                                        <div className="relative inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-primary to-accent-cyan rounded-2xl shadow-2xl">
-                                                                <span className="text-6xl animate-bounce">🏆</span>
+                        {/* Glow blobs */}
+                        <div style={{
+                                position: 'fixed', top: '10%', left: '15%', width: '400px', height: '400px', borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(0,229,255,.05) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0
+                        }} />
+                        <div style={{
+                                position: 'fixed', bottom: '10%', right: '5%', width: '350px', height: '350px', borderRadius: '50%',
+                                background: 'radial-gradient(circle, rgba(124,58,237,.07) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0
+                        }} />
+
+                        <main style={{ flex: 1, marginLeft: '256px', padding: '32px', position: 'relative', zIndex: 1 }}>
+                                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+
+                                        {/* Header */}
+                                        <header style={{ marginBottom: '32px', animation: 'slideUp 0.7s ease both' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                        <div>
+                                                                <div style={{
+                                                                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                                                                        padding: '6px 16px', border: '1px solid rgba(0,229,255,.25)',
+                                                                        borderRadius: '999px', background: 'rgba(0,229,255,.06)',
+                                                                        fontSize: '13px', color: DS.cyan, letterSpacing: '.5px', marginBottom: '12px',
+                                                                }}>
+                                                                        📊 Evaluation Report
+                                                                </div>
+                                                                <h1 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '36px', fontWeight: 900, color: '#fff', letterSpacing: '-1px' }}>
+                                                                        Prompt <span style={gradientText}>Analysis</span>
+                                                                </h1>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '12px' }}>
+                                                                <button
+                                                                        onClick={() => navigate(-1)}
+                                                                        style={{
+                                                                                padding: '10px 20px', borderRadius: '8px',
+                                                                                background: 'transparent', color: DS.cyan,
+                                                                                border: '1px solid rgba(0,229,255,.3)',
+                                                                                fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                                                                                fontSize: '14px', cursor: 'pointer', transition: 'all .2s',
+                                                                        }}
+                                                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,.08)'}
+                                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                                >
+                                                                        ← Back
+                                                                </button>
+                                                                <button
+                                                                        onClick={() => navigate('/problem-mode')}
+                                                                        style={{
+                                                                                padding: '10px 20px', borderRadius: '8px', border: 'none',
+                                                                                background: 'linear-gradient(135deg, #00e5ff, #00b8cc)',
+                                                                                color: '#000', fontFamily: 'DM Sans, sans-serif',
+                                                                                fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                                                                boxShadow: '0 0 20px rgba(0,229,255,.35)',
+                                                                                transition: 'transform .2s, box-shadow .2s',
+                                                                        }}
+                                                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(0,229,255,.5)'; }}
+                                                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0,229,255,.35)'; }}
+                                                                >
+                                                                        🔄 Try Again
+                                                                </button>
                                                         </div>
                                                 </div>
-                                                <h1 className="text-5xl font-extrabold mb-3 bg-gradient-to-r from-primary via-accent-cyan to-accent-pink bg-clip-text text-transparent">
-                                                        Evaluation Complete!
-                                                </h1>
-                                                <p className="text-xl text-text-secondary mb-2">Comprehensive analysis of your prompt engineering skills</p>
-                                                <Badge variant="default" className="text-lg px-4 py-2">
-                                                        {grade.emoji} {grade.text} - {grade.desc}
-                                                </Badge>
                                         </header>
 
-                                        {/* Hero Score Card with Circular Progress */}
-                                        <Card className="p-10 mb-10 bg-gradient-to-br from-primary/5 via-accent-cyan/5 to-accent-pink/5 border-2 border-primary/20 backdrop-blur-sm animate-slide-up">
-                                                <div className="grid md:grid-cols-3 gap-8 items-center">
-                                                        {/* Main Score with Circular Progress */}
-                                                        <div className="text-center">
-                                                                <div className="relative inline-block">
-                                                                        <CircularProgress score={evaluation.overall_score} size={160} strokeWidth={12} />
-                                                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                                                <div className={`text-5xl font-extrabold bg-gradient-to-r ${getScoreColor(evaluation.overall_score)} bg-clip-text text-transparent`}>
-                                                                                        {evaluation.overall_score.toFixed(1)}
-                                                                                </div>
-                                                                                <div className="text-sm text-text-secondary">/ 100</div>
+                                        {/* Row 1 — Overall Score + XP + Pattern + Risk */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '20px', marginBottom: '24px', animation: 'slideUp 0.5s 0.1s ease both' }}>
+
+                                                {/* Overall Score */}
+                                                <div style={{
+                                                        ...cardStyle,
+                                                        background: 'rgba(0,229,255,0.04)',
+                                                        borderColor: 'rgba(0,229,255,0.25)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                        padding: '28px',
+                                                }}>
+                                                        <div>
+                                                                <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', color: DS.cyan, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                                                        Overall Score
+                                                                </p>
+                                                                <div style={{
+                                                                        fontFamily: 'Orbitron, sans-serif', fontSize: '64px', fontWeight: 900,
+                                                                        ...gradientText, lineHeight: 1, animation: 'glowPulse 2s ease-in-out infinite',
+                                                                }}>
+                                                                        {evaluation.overall_score}
+                                                                        <span style={{ fontSize: '28px', opacity: 0.5 }}>/100</span>
+                                                                </div>
+                                                                <div style={{ marginTop: '16px' }}>
+                                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                                                                <span style={{ fontSize: '12px', color: DS.textMuted }}>75% to next level</span>
+                                                                                <span style={{ fontSize: '12px', color: DS.cyan }}>75%</span>
+                                                                        </div>
+                                                                        <div style={{ height: '6px', background: 'rgba(255,255,255,.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                                                                                <div style={{
+                                                                                        height: '100%', width: '75%',
+                                                                                        background: 'linear-gradient(90deg, #00e5ff, #a855f7)',
+                                                                                        borderRadius: '6px', animation: 'fillBar 1.2s ease both',
+                                                                                }} />
                                                                         </div>
                                                                 </div>
-                                                                <div className="text-lg text-text-secondary mt-4 font-semibold">Overall Score</div>
-                                                                <div className="mt-2 flex items-center justify-center gap-2">
-                                                                        <div className="w-16 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full"></div>
-                                                                </div>
                                                         </div>
-
-                                                        {/* XP Earned */}
-                                                        <div className="text-center border-l border-r border-border/50 px-6">
-                                                                <div className="relative">
-                                                                        <div className="text-6xl font-extrabold bg-gradient-to-r from-accent-cyan via-primary to-accent-pink bg-clip-text text-transparent mb-3 animate-pulse">
-                                                                                +{evaluation.xp_earned || 50}
-                                                                        </div>
-                                                                        <div className="absolute -top-2 right-1/4 text-3xl animate-bounce">✨</div>
-                                                                </div>
-                                                                <div className="text-lg text-text-secondary mb-2 font-semibold">Experience Points</div>
-                                                                <Badge variant="dsa" className="px-4 py-2">Level {evaluation.new_level || 1}</Badge>
-                                                                <div className="mt-4 w-full bg-bg-input rounded-full h-2 overflow-hidden">
-                                                                        <div className="h-full bg-gradient-to-r from-accent-cyan to-primary animate-fill-bar" style={{ width: '75%' }}></div>
-                                                                </div>
-                                                                <p className="text-xs text-text-secondary mt-2">75% to next level</p>
-                                                        </div>
-
-                                                        {/* Potential Score */}
-                                                        <div className="text-center">
-                                                                <div className="text-6xl font-extrabold bg-gradient-to-r from-success via-green-400 to-emerald-500 bg-clip-text text-transparent mb-3">
-                                                                        {(evaluation.improvement_potential_score || evaluation.overall_score + 10).toFixed(0)}
-                                                                </div>
-                                                                <div className="text-lg text-text-secondary mb-3 font-semibold">Potential Score</div>
-                                                                <div className="flex items-center justify-center gap-2 text-sm">
-                                                                        <span className="text-success">↗</span>
-                                                                        <span className="text-success font-bold">
-                                                                                +{((evaluation.improvement_potential_score || evaluation.overall_score + 10) - evaluation.overall_score).toFixed(0)} points
-                                                                        </span>
-                                                                </div>
-                                                                <p className="text-xs text-text-secondary mt-2">possible improvement</p>
+                                                        <div style={{ fontSize: '64px', opacity: 0.8 }}>
+                                                                {evaluation.overall_score >= 80 ? '🎉' : evaluation.overall_score >= 60 ? '👍' : '💪'}
                                                         </div>
                                                 </div>
-                                        </Card>
 
-                                        {/* Detailed Metrics Grid */}
-                                        <div className="grid md:grid-cols-3 gap-6 mb-10">
-                                                {detailedMetrics.map((category, idx) => (
-                                                        <Card
-                                                                key={category.category}
-                                                                className="p-6 animate-slide-up hover:shadow-2xl hover:scale-105 transition-all duration-300"
-                                                                style={{ animationDelay: `${idx * 0.1}s` }}
-                                                        >
-                                                                <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
-                                                                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent-cyan rounded-lg flex items-center justify-center text-sm">
-                                                                                {idx + 1}
-                                                                        </div>
-                                                                        {category.category}
-                                                                </h3>
-                                                                <div className="space-y-4">
-                                                                        {category.metrics.map((metric) => (
-                                                                                <div key={metric.name} className="group">
-                                                                                        <div className="flex items-center justify-between mb-2">
-                                                                                                <div className="flex items-center gap-2">
-                                                                                                        <span className="text-xl group-hover:scale-125 transition-transform">{metric.icon}</span>
-                                                                                                        <span className="text-sm font-medium">{metric.name}</span>
-                                                                                                </div>
-                                                                                                <span className={`text-lg font-bold ${getScoreColorSolid(metric.score)}`}>
-                                                                                                        {metric.score.toFixed(0)}
-                                                                                                </span>
-                                                                                        </div>
-                                                                                        <div className="relative w-full bg-bg-input rounded-full h-2 overflow-hidden">
-                                                                                                <div
-                                                                                                        className={`h-full bg-gradient-to-r from-${metric.color} to-${metric.color}-light transition-all duration-1000 ease-out`}
-                                                                                                        style={{
-                                                                                                                width: `${metric.score}%`,
-                                                                                                                background: `linear-gradient(90deg, var(--${metric.color}) 0%, var(--${metric.color}-light, var(--${metric.color})) 100%)`
-                                                                                                        }}
-                                                                                                ></div>
-                                                                                        </div>
-                                                                                </div>
-                                                                        ))}
-                                                                </div>
-                                                        </Card>
-                                                ))}
+                                                {/* Improvement Potential */}
+                                                <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                                                        <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '10px', color: DS.textMuted, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                                                Improvement
+                                                        </p>
+                                                        <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '40px', fontWeight: 900, color: DS.gold }}>
+                                                                {evaluation.improvement_potential_score}
+                                                        </div>
+                                                        <p style={{ fontSize: '12px', color: DS.textMuted, marginTop: '4px' }}>possible improvement</p>
+                                                </div>
+
+                                                {/* Prompt Pattern */}
+                                                <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                                                        <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '10px', color: DS.textMuted, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                                                                Pattern
+                                                        </p>
+                                                        <div style={{ fontSize: '32px', marginBottom: '8px' }}>{currentPattern.icon}</div>
+                                                        <span style={{
+                                                                padding: '4px 12px', borderRadius: '999px', fontSize: '11px', fontWeight: 600,
+                                                                color: currentPattern.color,
+                                                                background: `${currentPattern.color}18`,
+                                                                border: `1px solid ${currentPattern.color}40`,
+                                                                textAlign: 'center', lineHeight: 1.4,
+                                                        }}>
+                                                                {evaluation.prompt_pattern}
+                                                        </span>
+                                                </div>
+
+                                                {/* Hallucination Risk */}
+                                                <div style={{ ...cardStyle, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                                                        <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '10px', color: DS.textMuted, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>
+                                                                Hallucination Risk
+                                                        </p>
+                                                        <span style={{
+                                                                padding: '8px 20px', borderRadius: '999px', fontSize: '14px', fontWeight: 700,
+                                                                fontFamily: 'Orbitron, sans-serif', letterSpacing: '1px',
+                                                                color: riskStyle.color,
+                                                                background: riskStyle.bg,
+                                                                border: `1px solid ${riskStyle.border}`,
+                                                                marginBottom: '8px',
+                                                        }}>
+                                                                {evaluation.hallucination_risk}
+                                                        </span>
+                                                        <p style={{ fontSize: '11px', color: DS.textMuted, lineHeight: 1.5 }}>
+                                                                {evaluation.hallucination_risk_reason}
+                                                        </p>
+                                                </div>
                                         </div>
 
-                                        {/* Enhanced Charts Section */}
-                                        <div className="grid md:grid-cols-2 gap-8 mb-10">
-                                                {/* 3D Radar Chart */}
-                                                <Card className="p-8 animate-slide-up hover:shadow-2xl transition-shadow duration-300">
-                                                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                                                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-cyan rounded-xl flex items-center justify-center">
-                                                                        <span className="text-2xl">🎯</span>
-                                                                </div>
-                                                                Performance Radar
-                                                        </h2>
-                                                        <ResponsiveContainer width="100%" height={400}>
+                                        {/* Row 2 — Radar + Bar Chart */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', animation: 'slideUp 0.5s 0.2s ease both' }}>
+
+                                                {/* Radar Chart */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                                                                Skill Radar
+                                                        </h3>
+                                                        <ResponsiveContainer width="100%" height={280}>
                                                                 <RechartsRadar data={radarData}>
-                                                                        <defs>
-                                                                                <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                                        <stop offset="0%" stopColor="#6366f1" stopOpacity={0.8} />
-                                                                                        <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.3} />
-                                                                                </linearGradient>
-                                                                        </defs>
-                                                                        <PolarGrid stroke="#2d2d44" strokeWidth={1.5} />
-                                                                        <PolarAngleAxis
-                                                                                dataKey="metric"
-                                                                                tick={{ fill: '#94a3b8', fontSize: 13, fontWeight: 600 }}
-                                                                        />
-                                                                        <PolarRadiusAxis
-                                                                                angle={90}
-                                                                                domain={[0, 100]}
-                                                                                tick={{ fill: '#94a3b8', fontSize: 11 }}
-                                                                                stroke="#2d2d44"
-                                                                        />
-                                                                        <Radar
-                                                                                name="Scores"
-                                                                                dataKey="score"
-                                                                                stroke="#6366f1"
-                                                                                fill="url(#radarGradient)"
-                                                                                fillOpacity={0.7}
-                                                                                strokeWidth={3}
-                                                                        />
-                                                                        <Tooltip
-                                                                                contentStyle={{
-                                                                                        backgroundColor: '#1a1a2e',
-                                                                                        border: '2px solid #6366f1',
-                                                                                        borderRadius: '12px',
-                                                                                        boxShadow: '0 8px 16px rgba(0,0,0,0.3)'
-                                                                                }}
-                                                                        />
+                                                                        <PolarGrid stroke="rgba(0,229,255,.1)" />
+                                                                        <PolarAngleAxis dataKey="subject" tick={{ fill: DS.textMuted, fontSize: 11, fontFamily: 'DM Sans' }} />
+                                                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: DS.textMuted, fontSize: 10 }} />
+                                                                        <Radar name="Score" dataKey="score" stroke="#00e5ff" fill="rgba(0,229,255,0.15)" fillOpacity={0.6} />
                                                                 </RechartsRadar>
                                                         </ResponsiveContainer>
-                                                </Card>
+                                                </div>
 
-                                                {/* Enhanced Bar Chart with Gradient */}
-                                                <Card className="p-8 animate-slide-up hover:shadow-2xl transition-shadow duration-300" style={{ animationDelay: '0.1s' }}>
-                                                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                                                <div className="w-10 h-10 bg-gradient-to-br from-success to-green-400 rounded-xl flex items-center justify-center">
-                                                                        <span className="text-2xl">📊</span>
-                                                                </div>
-                                                                Detailed Breakdown
-                                                        </h2>
-                                                        <ResponsiveContainer width="100%" height={400}>
-                                                                <ComposedChart data={radarData}>
+                                                {/* Bar Chart */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                                                                Score Breakdown
+                                                        </h3>
+                                                        <ResponsiveContainer width="100%" height={280}>
+                                                                <BarChart data={barData} margin={{ top: 0, right: 0, bottom: 20, left: -20 }}>
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,229,255,.06)" />
+                                                                        <XAxis dataKey="name" tick={{ fill: DS.textMuted, fontSize: 10, fontFamily: 'DM Sans' }} angle={-35} textAnchor="end" />
+                                                                        <YAxis domain={[0, 100]} tick={{ fill: DS.textMuted, fontSize: 10 }} />
+                                                                        <Tooltip content={<CustomTooltip />} />
+                                                                        <Bar dataKey="score" radius={[4, 4, 0, 0]}
+                                                                                fill="url(#barGradient)" />
                                                                         <defs>
                                                                                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                                        <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
-                                                                                        <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.8} />
+                                                                                        <stop offset="0%" stopColor="#00e5ff" />
+                                                                                        <stop offset="100%" stopColor="#a855f7" />
                                                                                 </linearGradient>
                                                                         </defs>
-                                                                        <CartesianGrid strokeDasharray="3 3" stroke="#2d2d44" strokeWidth={1.5} />
-                                                                        <XAxis
-                                                                                dataKey="metric"
-                                                                                tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 600 }}
-                                                                                angle={-15}
-                                                                                textAnchor="end"
-                                                                                height={90}
-                                                                        />
-                                                                        <YAxis
-                                                                                tick={{ fill: '#94a3b8', fontSize: 11 }}
-                                                                                domain={[0, 100]}
-                                                                        />
-                                                                        <Tooltip
-                                                                                contentStyle={{
-                                                                                        backgroundColor: '#1a1a2e',
-                                                                                        border: '2px solid #06b6d4',
-                                                                                        borderRadius: '12px',
-                                                                                        boxShadow: '0 8px 16px rgba(0,0,0,0.3)'
-                                                                                }}
-                                                                        />
-                                                                        <Bar dataKey="score" fill="url(#barGradient)" radius={[12, 12, 0, 0]} />
-                                                                        <Line type="monotone" dataKey="score" stroke="#10b981" strokeWidth={3} dot={{ r: 5, fill: '#10b981' }} />
-                                                                </ComposedChart>
+                                                                </BarChart>
                                                         </ResponsiveContainer>
-                                                </Card>
+                                                </div>
                                         </div>
 
-                                        {/* Component Checklist - Enhanced */}
-                                        <Card className="p-8 mb-10 animate-slide-up">
-                                                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-warning to-yellow-400 rounded-xl flex items-center justify-center">
-                                                                <span className="text-2xl">✅</span>
-                                                        </div>
-                                                        Prompt Components Analysis
-                                                </h2>
-                                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                        {components.map((component, idx) => (
-                                                                <div
-                                                                        key={idx}
-                                                                        className={`group p-5 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-xl ${component.present
-                                                                                ? 'bg-success/5 border-success/30 hover:bg-success/10'
-                                                                                : 'bg-danger/5 border-danger/30 hover:bg-danger/10'
-                                                                                }`}
-                                                                >
-                                                                        <div className="flex items-start justify-between mb-3">
-                                                                                <div className="flex items-center gap-3">
-                                                                                        <span className="text-3xl group-hover:scale-125 transition-transform">{component.icon}</span>
-                                                                                        <div>
-                                                                                                <h4 className="font-semibold text-sm">{component.name}</h4>
-                                                                                                <p className="text-xs text-text-secondary mt-1">{component.desc}</p>
-                                                                                        </div>
-                                                                                </div>
-                                                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${component.present ? 'bg-success/20' : 'bg-danger/20'
-                                                                                        }`}>
-                                                                                        {component.present ? (
-                                                                                                <span className="text-success text-xl font-bold">✓</span>
-                                                                                        ) : (
-                                                                                                <span className="text-danger text-xl font-bold">✕</span>
-                                                                                        )}
-                                                                                </div>
-                                                                        </div>
-                                                                </div>
-                                                        ))}
-                                                </div>
-                                        </Card>
+                                        {/* Row 3 — Score Bars + Component Checks */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', animation: 'slideUp 0.5s 0.3s ease both' }}>
 
-                                        {/* Token Efficiency - Enhanced */}
-                                        <div className="grid md:grid-cols-2 gap-8 mb-10">
-                                                <Card className="p-8 animate-slide-up hover:shadow-2xl transition-shadow duration-300">
-                                                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                                                <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-blue-500 rounded-xl flex items-center justify-center">
-                                                                        <span className="text-2xl">⚡</span>
-                                                                </div>
-                                                                Token Efficiency
-                                                        </h2>
-                                                        <div className="flex items-center justify-center mb-6">
-                                                                <div className="relative w-48 h-48">
-                                                                        <svg className="w-full h-full transform -rotate-90">
-                                                                                <circle
-                                                                                        cx="96"
-                                                                                        cy="96"
-                                                                                        r="80"
-                                                                                        stroke="currentColor"
-                                                                                        strokeWidth="16"
-                                                                                        fill="none"
-                                                                                        className="text-bg-input"
-                                                                                />
-                                                                                <circle
-                                                                                        cx="96"
-                                                                                        cy="96"
-                                                                                        r="80"
-                                                                                        stroke="currentColor"
-                                                                                        strokeWidth="16"
-                                                                                        fill="none"
-                                                                                        strokeDasharray={`${2 * Math.PI * 80 * (evaluation.useful_tokens_percentage || 70) / 100} ${2 * Math.PI * 80}`}
-                                                                                        className="text-success transition-all duration-1000"
-                                                                                        strokeLinecap="round"
-                                                                                />
-                                                                        </svg>
-                                                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                                                <div className="text-4xl font-extrabold text-success">
-                                                                                        {(evaluation.useful_tokens_percentage || 70).toFixed(0)}%
-                                                                                </div>
-                                                                                <div className="text-sm text-text-secondary">Useful</div>
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                        <div className="space-y-4">
-                                                                <div className="flex items-center justify-between p-4 bg-success/5 border border-success/20 rounded-xl">
-                                                                        <span className="text-sm font-medium flex items-center gap-2">
-                                                                                <span className="w-3 h-3 bg-success rounded-full"></span>
-                                                                                Useful Tokens
-                                                                        </span>
-                                                                        <span className="font-bold text-success">{(evaluation.useful_tokens_percentage || 70).toFixed(0)}%</span>
-                                                                </div>
-                                                                <div className="flex items-center justify-between p-4 bg-danger/5 border border-danger/20 rounded-xl">
-                                                                        <span className="text-sm font-medium flex items-center gap-2">
-                                                                                <span className="w-3 h-3 bg-danger rounded-full"></span>
-                                                                                Redundant Tokens
-                                                                        </span>
-                                                                        <span className="font-bold text-danger">{(evaluation.redundant_tokens_percentage || 30).toFixed(0)}%</span>
-                                                                </div>
-                                                                <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                                                                        <span className="text-sm font-medium">Estimated Tokens</span>
-                                                                        <span className="font-bold text-primary">{Math.round(evaluation.estimated_tokens || 100)}</span>
-                                                                </div>
-                                                        </div>
-                                                </Card>
-
-                                                {/* Quality Metrics */}
-                                                <Card className="p-8 animate-slide-up hover:shadow-2xl transition-shadow duration-300" style={{ animationDelay: '0.1s' }}>
-                                                        <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                                                <div className="w-10 h-10 bg-gradient-to-br from-accent-pink to-pink-500 rounded-xl flex items-center justify-center">
-                                                                        <span className="text-2xl">⭐</span>
-                                                                </div>
-                                                                Quality Metrics
-                                                        </h2>
-                                                        <div className="space-y-6">
-                                                                {[
-                                                                        { name: 'Grammar', score: evaluation.grammar_score || 80, icon: '📝', color: 'primary' },
-                                                                        { name: 'Readability', score: evaluation.readability_score || 75, icon: '👁️', color: 'success' },
-                                                                        { name: 'Clarity', score: evaluation.ambiguity_score ? 100 - evaluation.ambiguity_score : 80, icon: '🔍', color: 'accent-cyan' },
-                                                                ].map((metric, idx) => (
-                                                                        <div key={metric.name} className="group">
-                                                                                <div className="flex items-center justify-between mb-3">
-                                                                                        <div className="flex items-center gap-3">
-                                                                                                <span className="text-2xl group-hover:scale-125 transition-transform">{metric.icon}</span>
-                                                                                                <span className="font-semibold">{metric.name}</span>
-                                                                                        </div>
-                                                                                        <span className={`text-2xl font-bold ${getScoreColorSolid(metric.score)}`}>
-                                                                                                {metric.score.toFixed(0)}
+                                                {/* Detailed Score Bars */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                                                                Dimension Scores
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                                                {scoreData.map(({ label, value }) => (
+                                                                        <div key={label}>
+                                                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                                                                        <span style={{ fontSize: '13px', color: DS.textMuted }}>{label}</span>
+                                                                                        <span style={{
+                                                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700,
+                                                                                                color: getScoreColor(value),
+                                                                                        }}>
+                                                                                                {value}
                                                                                         </span>
                                                                                 </div>
-                                                                                <div className="relative w-full bg-bg-input rounded-full h-3 overflow-hidden">
-                                                                                        <div
-                                                                                                className={`h-full bg-gradient-to-r from-${metric.color} to-${metric.color}-light transition-all duration-1000 ease-out shadow-lg`}
-                                                                                                style={{ width: `${metric.score}%` }}
-                                                                                        ></div>
+                                                                                <div style={{ height: '6px', background: 'rgba(255,255,255,.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                                                                                        <div style={{
+                                                                                                height: '100%', width: `${value}%`,
+                                                                                                background: 'linear-gradient(90deg, #00e5ff, #a855f7)',
+                                                                                                borderRadius: '6px', animation: 'fillBar 1s ease both',
+                                                                                                transition: 'width .8s ease',
+                                                                                        }} />
                                                                                 </div>
                                                                         </div>
                                                                 ))}
                                                         </div>
-                                                </Card>
-                                        </div>
+                                                </div>
 
-                                        {/* Prompt Comparison - Side by Side */}
-                                        <Card className="p-8 mb-10 animate-slide-up">
-                                                <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
-                                                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-pink rounded-xl flex items-center justify-center">
-                                                                <span className="text-2xl">💻</span>
-                                                        </div>
-                                                        Prompt Comparison
-                                                </h2>
-                                                <div className="grid md:grid-cols-2 gap-6">
-                                                        {/* Your Prompt */}
-                                                        <div className="space-y-4">
-                                                                <div className="flex items-center justify-between">
-                                                                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                                                                                <Badge variant="default" className="px-3 py-1">Your Prompt</Badge>
-                                                                        </h3>
-                                                                        <div className="flex items-center gap-3 text-xs text-text-secondary">
-                                                                                <span className="flex items-center gap-1">
-                                                                                        <span className="w-2 h-2 bg-primary rounded-full"></span>
-                                                                                        {(userPrompt || '').split(/\s+/).length} words
-                                                                                </span>
-                                                                                <span className="flex items-center gap-1">
-                                                                                        <span className="w-2 h-2 bg-accent-cyan rounded-full"></span>
-                                                                                        ~{Math.round(evaluation.estimated_tokens || 100)} tokens
-                                                                                </span>
-                                                                        </div>
-                                                                </div>
-                                                                <div className="relative bg-bg-input rounded-xl p-6 border-2 border-border max-h-96 overflow-y-auto hover:border-primary/50 transition-colors">
-                                                                        <pre className="text-sm text-text-primary whitespace-pre-wrap font-mono leading-relaxed">
-                                                                                {userPrompt || 'Your original prompt'}
-                                                                        </pre>
-                                                                </div>
-                                                        </div>
-
-                                                        {/* AI Enhanced */}
-                                                        <div className="space-y-4">
-                                                                <div className="flex items-center justify-between">
-                                                                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                                                                                <Badge variant="dsa" className="px-3 py-1">✨ AI Enhanced</Badge>
-                                                                        </h3>
-                                                                        <div className="px-3 py-1 bg-success/10 border border-success/30 rounded-full text-xs font-semibold text-success">
-                                                                                Optimized
-                                                                        </div>
-                                                                </div>
-                                                                <div className="relative bg-gradient-to-br from-primary/5 via-accent-cyan/5 to-accent-pink/5 rounded-xl p-6 border-2 border-primary/30 max-h-96 overflow-y-auto hover:border-primary/60 transition-colors">
-                                                                        <pre className="text-sm text-text-primary whitespace-pre-wrap font-mono leading-relaxed">
-                                                                                {evaluation.ai_improved_prompt || 'Enhanced version with best practices applied.'}
-                                                                        </pre>
-                                                                </div>
+                                                {/* Component Checks */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                                                                Component Detection
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                                {componentChecks.map((component) => {
+                                                                        const present = evaluation[component.key];
+                                                                        return (
+                                                                                <div key={component.key} style={{
+                                                                                        display: 'flex', alignItems: 'center', gap: '12px',
+                                                                                        padding: '10px 14px', borderRadius: '8px',
+                                                                                        background: present ? 'rgba(34,197,94,.06)' : 'rgba(239,68,68,.04)',
+                                                                                        border: `1px solid ${present ? 'rgba(34,197,94,.2)' : 'rgba(239,68,68,.1)'}`,
+                                                                                }}>
+                                                                                        <span style={{
+                                                                                                width: '22px', height: '22px', borderRadius: '50%',
+                                                                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                                                fontSize: '12px', flexShrink: 0,
+                                                                                                background: present ? 'rgba(34,197,94,.2)' : 'rgba(239,68,68,.15)',
+                                                                                                color: present ? '#22c55e' : '#ef4444',
+                                                                                        }}>
+                                                                                                {present ? '✓' : '✗'}
+                                                                                        </span>
+                                                                                        <div style={{ flex: 1 }}>
+                                                                                                <p style={{ fontSize: '13px', color: present ? DS.textPrimary : DS.textMuted, fontWeight: 600, marginBottom: '1px' }}>
+                                                                                                        {component.label}
+                                                                                                </p>
+                                                                                                <p style={{ fontSize: '11px', color: DS.textMuted }}>{component.desc}</p>
+                                                                                        </div>
+                                                                                </div>
+                                                                        );
+                                                                })}
                                                         </div>
                                                 </div>
-                                        </Card>
-
-                                        {/* Feedback Cards - Three Column Layout */}
-                                        <div className="grid md:grid-cols-3 gap-6 mb-10">
-                                                {/* Strengths */}
-                                                {evaluation.strengths && evaluation.strengths.length > 0 && (
-                                                        <Card className="p-6 animate-slide-up border-2 border-success/30 hover:shadow-2xl hover:border-success/50 transition-all duration-300">
-                                                                <div className="flex items-center gap-3 mb-5">
-                                                                        <div className="w-12 h-12 bg-success/10 border-2 border-success/30 rounded-xl flex items-center justify-center">
-                                                                                <span className="text-2xl">✓</span>
-                                                                        </div>
-                                                                        <h3 className="text-xl font-bold text-success">Strengths</h3>
-                                                                </div>
-                                                                <ul className="space-y-3">
-                                                                        {evaluation.strengths.map((strength, idx) => (
-                                                                                <li key={idx} className="flex items-start gap-3 p-3 bg-success/5 border border-success/20 rounded-lg hover:bg-success/10 transition-colors">
-                                                                                        <span className="text-success text-xl mt-0.5">●</span>
-                                                                                        <span className="text-sm text-text-secondary flex-1">{strength}</span>
-                                                                                </li>
-                                                                        ))}
-                                                                </ul>
-                                                        </Card>
-                                                )}
-
-                                                {/* Issues */}
-                                                {evaluation.issues_detected && evaluation.issues_detected.length > 0 && (
-                                                        <Card className="p-6 animate-slide-up border-2 border-danger/30 hover:shadow-2xl hover:border-danger/50 transition-all duration-300" style={{ animationDelay: '0.1s' }}>
-                                                                <div className="flex items-center gap-3 mb-5">
-                                                                        <div className="w-12 h-12 bg-danger/10 border-2 border-danger/30 rounded-xl flex items-center justify-center">
-                                                                                <span className="text-2xl">⚠</span>
-                                                                        </div>
-                                                                        <h3 className="text-xl font-bold text-danger">Issues Found</h3>
-                                                                </div>
-                                                                <ul className="space-y-3">
-                                                                        {evaluation.issues_detected.map((issue, idx) => (
-                                                                                <li key={idx} className="flex items-start gap-3 p-3 bg-danger/5 border border-danger/20 rounded-lg hover:bg-danger/10 transition-colors">
-                                                                                        <span className="text-danger text-xl mt-0.5">●</span>
-                                                                                        <span className="text-sm text-text-secondary flex-1">{issue}</span>
-                                                                                </li>
-                                                                        ))}
-                                                                </ul>
-                                                        </Card>
-                                                )}
-
-                                                {/* Suggestions */}
-                                                {evaluation.suggestions && evaluation.suggestions.length > 0 && (
-                                                        <Card className="p-6 animate-slide-up border-2 border-warning/30 hover:shadow-2xl hover:border-warning/50 transition-all duration-300" style={{ animationDelay: '0.2s' }}>
-                                                                <div className="flex items-center gap-3 mb-5">
-                                                                        <div className="w-12 h-12 bg-warning/10 border-2 border-warning/30 rounded-xl flex items-center justify-center">
-                                                                                <span className="text-2xl">💡</span>
-                                                                        </div>
-                                                                        <h3 className="text-xl font-bold text-warning">Suggestions</h3>
-                                                                </div>
-                                                                <ul className="space-y-3">
-                                                                        {evaluation.suggestions.map((suggestion, idx) => (
-                                                                                <li key={idx} className="flex items-start gap-3 p-3 bg-warning/5 border border-warning/20 rounded-lg hover:bg-warning/10 transition-colors">
-                                                                                        <span className="text-warning text-xl mt-0.5">●</span>
-                                                                                        <span className="text-sm text-text-secondary flex-1">{suggestion}</span>
-                                                                                </li>
-                                                                        ))}
-                                                                </ul>
-                                                        </Card>
-                                                )}
                                         </div>
 
-                                        {/* Badges Earned */}
-                                        {evaluation.badges_earned && evaluation.badges_earned.length > 0 && (
-                                                <Card className="p-10 bg-gradient-to-r from-warning/10 via-accent-pink/10 to-primary/10 border-2 border-warning/30 mb-10 animate-slide-up">
-                                                        <div className="flex items-center justify-center gap-4 mb-8">
-                                                                <span className="text-6xl animate-bounce">🏆</span>
-                                                                <h2 className="text-3xl font-bold">New Badges Unlocked!</h2>
-                                                        </div>
-                                                        <div className="flex flex-wrap justify-center gap-4">
-                                                                {evaluation.badges_earned.map((badge, idx) => (
-                                                                        <div
-                                                                                key={idx}
-                                                                                className="group px-8 py-4 bg-gradient-to-br from-warning/20 to-accent-pink/20 border-2 border-warning rounded-2xl shadow-xl animate-slide-up hover:scale-110 transition-all duration-300"
-                                                                                style={{ animationDelay: `${idx * 0.1}s` }}
-                                                                        >
-                                                                                <span className="text-xl font-bold flex items-center gap-2">
-                                                                                        <span className="text-3xl group-hover:rotate-12 transition-transform">🏆</span>
-                                                                                        {badge}
-                                                                                </span>
+                                        {/* Row 4 — Token Analysis + Additional Scores */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', animation: 'slideUp 0.5s 0.35s ease both' }}>
+
+                                                {/* Token Analysis */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                                                                Token Analysis
+                                                        </h3>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                                {[
+                                                                        { label: 'Est. Tokens', value: evaluation.estimated_tokens, suffix: '', color: DS.cyan },
+                                                                        { label: 'Useful Tokens', value: `${evaluation.useful_tokens_percentage}%`, suffix: '', color: '#22c55e' },
+                                                                        { label: 'Redundant', value: `${evaluation.redundant_tokens_percentage}%`, suffix: '', color: '#ef4444' },
+                                                                        { label: 'Info Density', value: evaluation.information_density_score, suffix: '', color: DS.purple2 },
+                                                                ].map(({ label, value, color }) => (
+                                                                        <div key={label} style={{
+                                                                                padding: '16px', background: 'rgba(0,0,0,0.35)',
+                                                                                border: '1px solid rgba(0,229,255,.08)', borderRadius: '10px',
+                                                                                textAlign: 'center',
+                                                                        }}>
+                                                                                <p style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '24px', fontWeight: 900, color, marginBottom: '4px' }}>
+                                                                                        {value}
+                                                                                </p>
+                                                                                <p style={{ fontSize: '11px', color: DS.textMuted, textTransform: 'uppercase', letterSpacing: '1px' }}>{label}</p>
                                                                         </div>
                                                                 ))}
                                                         </div>
-                                                </Card>
-                                        )}
+                                                </div>
 
-                                        {/* Enhanced Action Buttons */}
-                                        <div className="grid md:grid-cols-2 gap-6">
-                                                <Button
-                                                        onClick={() => navigate('/dashboard')}
-                                                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-primary to-accent-cyan hover:from-primary-dark hover:to-accent-cyan-dark transition-all duration-300 transform hover:scale-105"
-                                                >
-                                                        <span className="text-2xl mr-2">🏠</span>
-                                                        Back to Dashboard
-                                                </Button>
-                                                <Button
-                                                        onClick={() => navigate('/problem-mode')}
-                                                        variant="secondary"
-                                                        className="w-full h-14 text-lg font-semibold border-2 border-primary/30 hover:border-primary hover:bg-primary/10 transition-all duration-300 transform hover:scale-105"
-                                                >
-                                                        <span className="text-2xl mr-2">🔄</span>
-                                                        Try Another Challenge
-                                                </Button>
+                                                {/* Additional Quality Scores */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 700, color: '#fff', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '20px' }}>
+                                                                Quality Metrics
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                                                {[
+                                                                        { label: 'Grammar', value: evaluation.grammar_score },
+                                                                        { label: 'Readability', value: evaluation.readability_score },
+                                                                        { label: 'Ambiguity', value: evaluation.ambiguity_score },
+                                                                ].map(({ label, value }) => (
+                                                                        <div key={label}>
+                                                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                                                                        <span style={{ fontSize: '13px', color: DS.textMuted }}>{label}</span>
+                                                                                        <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, color: getScoreColor(value) }}>
+                                                                                                {value}
+                                                                                        </span>
+                                                                                </div>
+                                                                                <div style={{ height: '6px', background: 'rgba(255,255,255,.06)', borderRadius: '6px', overflow: 'hidden' }}>
+                                                                                        <div style={{
+                                                                                                height: '100%', width: `${value}%`,
+                                                                                                background: 'linear-gradient(90deg, #00e5ff, #a855f7)',
+                                                                                                borderRadius: '6px', animation: 'fillBar 1s ease both',
+                                                                                        }} />
+                                                                                </div>
+                                                                        </div>
+                                                                ))}
+                                                        </div>
+                                                </div>
                                         </div>
+
+                                        {/* Row 5 — Strengths + Weaknesses */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px', animation: 'slideUp 0.5s 0.4s ease both' }}>
+
+                                                {/* Strengths */}
+                                                <div style={{ ...cardStyle, borderColor: 'rgba(34,197,94,.2)', background: 'rgba(34,197,94,.03)' }}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, color: '#22c55e',
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px',
+                                                                display: 'flex', alignItems: 'center', gap: '8px'
+                                                        }}>
+                                                                ✓ Strengths
+                                                        </h3>
+                                                        <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                                {(evaluation.strengths || []).map((strength, index) => (
+                                                                        <li key={index} style={{
+                                                                                display: 'flex', gap: '10px', fontSize: '13px', color: DS.textMuted,
+                                                                                lineHeight: 1.6, padding: '8px 12px',
+                                                                                background: 'rgba(34,197,94,.04)', borderRadius: '6px',
+                                                                                border: '1px solid rgba(34,197,94,.1)',
+                                                                        }}>
+                                                                                <span style={{ color: '#22c55e', marginTop: '2px', flexShrink: 0 }}>•</span>
+                                                                                {strength}
+                                                                        </li>
+                                                                ))}
+                                                        </ul>
+                                                </div>
+
+                                                {/* Weaknesses */}
+                                                <div style={{ ...cardStyle, borderColor: 'rgba(245,158,11,.2)', background: 'rgba(245,158,11,.03)' }}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, color: DS.gold,
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '16px',
+                                                                display: 'flex', alignItems: 'center', gap: '8px'
+                                                        }}>
+                                                                ⚠ Weaknesses
+                                                        </h3>
+                                                        <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                                {(evaluation.weaknesses || []).map((weakness, index) => (
+                                                                        <li key={index} style={{
+                                                                                display: 'flex', gap: '10px', fontSize: '13px', color: DS.textMuted,
+                                                                                lineHeight: 1.6, padding: '8px 12px',
+                                                                                background: 'rgba(245,158,11,.04)', borderRadius: '6px',
+                                                                                border: '1px solid rgba(245,158,11,.1)',
+                                                                        }}>
+                                                                                <span style={{ color: DS.gold, marginTop: '2px', flexShrink: 0 }}>•</span>
+                                                                                {weakness}
+                                                                        </li>
+                                                                ))}
+                                                        </ul>
+                                                </div>
+                                        </div>
+
+                                        {/* Row 6 — Issues + Suggestions + Missing */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '24px', animation: 'slideUp 0.5s 0.45s ease both' }}>
+
+                                                {/* Issues */}
+                                                <div style={{ ...cardStyle, borderColor: 'rgba(239,68,68,.2)', background: 'rgba(239,68,68,.03)' }}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '12px', fontWeight: 700, color: '#ef4444',
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px'
+                                                        }}>
+                                                                🚨 Issues Detected
+                                                        </h3>
+                                                        <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                                {(evaluation.issues_detected || []).map((issue, index) => (
+                                                                        <li key={index} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: DS.textMuted, lineHeight: 1.6 }}>
+                                                                                <span style={{ color: '#ef4444', flexShrink: 0 }}>!</span>{issue}
+                                                                        </li>
+                                                                ))}
+                                                        </ul>
+                                                </div>
+
+                                                {/* Suggestions */}
+                                                <div style={{ ...cardStyle, borderColor: 'rgba(0,229,255,.2)', background: 'rgba(0,229,255,.03)' }}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '12px', fontWeight: 700, color: DS.cyan,
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px'
+                                                        }}>
+                                                                💡 Suggestions
+                                                        </h3>
+                                                        <ul style={{ paddingLeft: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                                {(evaluation.suggestions || []).map((suggestion, index) => (
+                                                                        <li key={index} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: DS.textMuted, lineHeight: 1.6 }}>
+                                                                                <span style={{ color: DS.cyan, flexShrink: 0 }}>→</span>{suggestion}
+                                                                        </li>
+                                                                ))}
+                                                        </ul>
+                                                </div>
+
+                                                {/* Missing Elements */}
+                                                <div style={{ ...cardStyle, borderColor: 'rgba(168,85,247,.2)', background: 'rgba(168,85,247,.03)' }}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '12px', fontWeight: 700, color: DS.purple2,
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px'
+                                                        }}>
+                                                                🔍 Missing Elements
+                                                        </h3>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                                {(evaluation.missing_elements || []).map((element, index) => (
+                                                                        <span key={index} style={{
+                                                                                padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,
+                                                                                background: 'rgba(168,85,247,.1)', color: DS.purple2,
+                                                                                border: '1px solid rgba(168,85,247,.25)',
+                                                                        }}>
+                                                                                {element}
+                                                                        </span>
+                                                                ))}
+                                                        </div>
+                                                </div>
+                                        </div>
+
+                                        {/* Row 7 — Original vs Improved Prompt */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px', animation: 'slideUp 0.5s 0.5s ease both' }}>
+
+                                                {/* Original Prompt */}
+                                                <div style={cardStyle}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, color: DS.textMuted,
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px',
+                                                                display: 'flex', alignItems: 'center', gap: '8px'
+                                                        }}>
+                                                                📝 Your Original Prompt
+                                                        </h3>
+                                                        <div style={{
+                                                                padding: '16px', background: 'rgba(0,0,0,0.5)',
+                                                                border: '1px solid rgba(255,255,255,.06)', borderRadius: '10px',
+                                                                maxHeight: '320px', overflowY: 'auto',
+                                                        }}>
+                                                                <p style={{ fontSize: '13px', color: DS.textMuted, fontFamily: 'monospace', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                                                                        {userPrompt || 'Your original prompt'}
+                                                                </p>
+                                                        </div>
+                                                </div>
+
+                                                {/* AI Improved Prompt */}
+                                                <div style={{ ...cardStyle, borderColor: 'rgba(0,229,255,0.25)', background: 'rgba(0,229,255,0.03)' }}>
+                                                        <h3 style={{
+                                                                fontFamily: 'Orbitron, sans-serif', fontSize: '13px', fontWeight: 700, color: DS.cyan,
+                                                                letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '14px',
+                                                                display: 'flex', alignItems: 'center', gap: '8px'
+                                                        }}>
+                                                                ✨ AI Improved Prompt
+                                                        </h3>
+                                                        <div style={{
+                                                                padding: '16px', background: 'rgba(0,0,0,0.5)',
+                                                                border: '1px solid rgba(0,229,255,.15)', borderRadius: '10px',
+                                                                maxHeight: '320px', overflowY: 'auto',
+                                                        }}>
+                                                                <p style={{ fontSize: '13px', color: DS.textPrimary, fontFamily: 'monospace', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                                                                        {evaluation.ai_improved_prompt || 'Enhanced version with best practices applied.'}
+                                                                </p>
+                                                        </div>
+                                                </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', animation: 'slideUp 0.5s 0.55s ease both' }}>
+                                                <button
+                                                        onClick={() => navigate('/problem-mode')}
+                                                        style={{
+                                                                padding: '14px 36px', borderRadius: '8px', border: 'none',
+                                                                background: 'linear-gradient(135deg, #00e5ff, #00b8cc)',
+                                                                color: '#000', fontFamily: 'DM Sans, sans-serif',
+                                                                fontWeight: 600, fontSize: '15px', cursor: 'pointer',
+                                                                boxShadow: '0 0 20px rgba(0,229,255,.35)',
+                                                                transition: 'transform .2s, box-shadow .2s',
+                                                        }}
+                                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(0,229,255,.5)'; }}
+                                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(0,229,255,.35)'; }}
+                                                >
+                                                        🚀 Try New Challenge
+                                                </button>
+                                                <button
+                                                        onClick={() => navigate(-1)}
+                                                        style={{
+                                                                padding: '14px 36px', borderRadius: '8px',
+                                                                background: 'transparent', color: DS.cyan,
+                                                                border: '1px solid rgba(0,229,255,.3)',
+                                                                fontFamily: 'DM Sans, sans-serif', fontWeight: 600,
+                                                                fontSize: '15px', cursor: 'pointer', transition: 'all .2s',
+                                                        }}
+                                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,.08)'}
+                                                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                        ← Improve This Prompt
+                                                </button>
+                                        </div>
+
                                 </div>
                         </main>
                 </div>

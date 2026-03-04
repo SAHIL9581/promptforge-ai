@@ -23,17 +23,26 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 
+# ✅ UPDATED - Added bio and streak
 class UserResponse(BaseModel):
     id: int
     name: str
     email: str
+    bio: Optional[str] = ""
     level: str
     xp: int
     total_attempts: int
+    streak: int = 0
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+
+# ✅ NEW - Profile update request
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    bio: Optional[str] = None
 
 
 class ProblemResponse(BaseModel):
